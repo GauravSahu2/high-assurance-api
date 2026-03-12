@@ -1,0 +1,6 @@
+extends: ["spectral:oas"]
+rules:
+  # Strict Rule: No undocumented endpoints or methods allowed
+  openapi-tags: off
+  operation-description: error
+  info-contact: off

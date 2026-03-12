@@ -1,0 +1,65 @@
+{
+  "name": "Thorough High-Assurance Triage",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "pipeline-failure" },
+      "name": "Jenkins Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [ 0, 300 ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "conditions": { "string": [ { "value1": "={{$json.body.stage_failed}}", "operation": "contains", "value2": "Secret" } ] },
+              "output": 0
+            },
+            {
+              "conditions": { "string": [ { "value1": "={{$json.body.stage_failed}}", "operation": "contains", "value2": "Architecture" } ] },
+              "output": 1
+            }
+          ]
+        }
+      },
+      "name": "Triage Router (Switch)",
+      "type": "n8n-nodes-base.switch",
+      "position": [ 250, 300 ]
+    },
+    {
+      "parameters": { "incidentTitle": "=CRITICAL: Secret Leak in {{$json.body.branch}}", "serviceId": "PAGER_DUTY_SEC_TEAM" },
+      "name": "Page Security Team",
+      "type": "n8n-nodes-base.pagerduty",
+      "position": [ 500, 100 ]
+    },
+    {
+      "parameters": { "channel": "security-incidents", "text": "=🚨 SECURITY PIPELINE HALTED 🚨\nCommit: {{$json.body.commit}}" },
+      "name": "Slack: Security",
+      "type": "n8n-nodes-base.slack",
+      "position": [ 750, 100 ]
+    },
+    {
+      "parameters": { "channel": "devops-alerts", "text": "=⚠️ Build Failed in functional testing.\nCommit: {{$json.body.commit}}" },
+      "name": "Slack: DevOps",
+      "type": "n8n-nodes-base.slack",
+      "position": [ 500, 400 ]
+    },
+    {
+      "parameters": { "project": "ENG", "summary": "=Fix Pipeline on {{$json.body.branch}}", "issueType": "Bug" },
+      "name": "Create Jira Ticket",
+      "type": "n8n-nodes-base.jira",
+      "position": [ 750, 400 ]
+    }
+  ],
+  "connections": {
+    "Jenkins Webhook": { "main": [ [ { "node": "Triage Router (Switch)", "type": "main", "index": 0 } ] ] },
+    "Triage Router (Switch)": {
+      "main": [
+        [ { "node": "Page Security Team", "type": "main", "index": 0 } ],
+        [ { "node": "Slack: DevOps", "type": "main", "index": 0 }, { "node": "Create Jira Ticket", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Page Security Team": { "main": [ [ { "node": "Slack: Security", "type": "main", "index": 0 } ] ] }
+  },
+  "active": false
+}

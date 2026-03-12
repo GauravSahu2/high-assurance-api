@@ -1,0 +1,81 @@
+name: 20-Tier High-Assurance CI/CD
+
+# 1. TRIGGER: When does this pipeline run?
+on:
+  push:
+    branches: [ "main" ]       # Run automatically when code merges to main
+  pull_request:
+    branches: [ "main" ]       # Run when someone opens a PR to main
+
+# 2. JOBS: The isolated virtual machines that run our tests
+jobs:
+  # --- JOB 1: SECRETS & COMPLIANCE (Runs First. If this fails, everything stops.) ---
+  security-and-compliance:
+    runs-on: ubuntu-latest     # Boot up a fresh Linux machine
+    steps:
+      - name: Checkout Code    # Download the repository onto the VM
+        uses: actions/checkout@v4
+      
+      - name: Run Zero-Leak & Secret Scanners
+        # Execute our bash scripts to catch PII or AWS Access Keys
+        run: |
+          chmod +x tests/13_dependency_secrets/scan_hardcoded_secrets.sh
+          ./tests/13_dependency_secrets/scan_hardcoded_secrets.sh
+          chmod +x tests/4_compliance/zero_leak_check.sh
+          ./tests/4_compliance/zero_leak_check.sh
+
+  # --- JOB 2: CORE LOGIC & MATH PROOFS (Runs if Job 1 passes) ---
+  core-functional-tests:
+    needs: security-and-compliance # Wait for security checks to pass
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.12 # Install the exact Python version we used locally
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          
+      - name: Install Testing Engines
+        # Install pytest and our AWS/Integration mocking libraries
+        run: pip install pytest jsonschema boto3 moto requests
+
+      - name: Execute 15-Layer Pytest Suite
+        # Run the BVA, BOLA, Complexity, Race Conditions, and DB state tests
+        run: |
+          pytest -v -s \
+          tests/1_functional/ \
+          tests/2_security/ \
+          tests/3_resilience/test_idempotency.py \
+          tests/6_database_state/ \
+          tests/8_ai_mcp_boundaries/ \
+          tests/10_integration_contracts/ \
+          tests/11_observability_tracing/ \
+          tests/12_auth_rate_limiting/ \
+          tests/14_algorithmic_complexity/ \
+          tests/15_concurrency_race_conditions/ \
+          tests/16_db_operational_safeguards/ \
+          tests/17_two_person_rule/ \
+          tests/18_infra_drift_prevention/ \
+          tests/19_deployment_rollbacks/ \
+          tests/20_disaster_recovery/
+
+  # --- JOB 3: SPACE-GRADE RESILIENCE (Runs if Job 2 passes) ---
+  resilience-load-test:
+    needs: core-functional-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install k6 Load Tester
+        # Download and install the k6 binary on the GitHub VM
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+      - name: Execute k6 Stress & Soak Test
+        # Blast the system with 500 Virtual Users to verify P95 latency thresholds
+        run: k6 run tests/3_resilience/space_grade_load.js

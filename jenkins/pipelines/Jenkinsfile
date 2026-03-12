@@ -1,0 +1,42 @@
+// jenkins/pipelines/Jenkinsfile
+pipeline {
+    agent any
+    environment { PYTHON_ENV = 'venv' }
+    stages {
+        stage('Initialize Environment') {
+            steps {
+                sh '''
+                    python3 -m venv ${PYTHON_ENV}
+                    . ${PYTHON_ENV}/bin/activate
+                    pip install pytest jsonschema boto3 moto requests
+                '''
+            }
+        }
+        stage('Zero-Trust Secret Scan') {
+            steps {
+                sh '''
+                    chmod +x tests/13_dependency_secrets/scan_hardcoded_secrets.sh
+                    ./tests/13_dependency_secrets/scan_hardcoded_secrets.sh
+                '''
+            }
+        }
+        stage('Execute 20-Tier Architecture') {
+            steps {
+                sh '''
+                    . ${PYTHON_ENV}/bin/activate
+                    ./run_all_20_layers.sh
+                '''
+            }
+        }
+    }
+    post {
+        failure {
+            // Send rich JSON payload to our new thorough n8n Webhook
+            sh '''
+            curl -X POST https://your-n8n-server.com/webhook/pipeline-failure \
+                 -H "Content-Type: application/json" \
+                 -d '{"branch": "'${env.BRANCH_NAME}'", "stage_failed": "'${env.STAGE_NAME}'", "commit": "'${env.GIT_COMMIT}'"}'
+            '''
+        }
+    }
+}

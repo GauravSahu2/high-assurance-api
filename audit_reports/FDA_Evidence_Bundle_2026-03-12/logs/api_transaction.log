@@ -1,0 +1,2 @@
+Transaction 1234: SUCCESS. User: gaurav. Amount: 500.
+k6 Load Test: FAILED threshold p(95) < 500ms. Actual: 3.47s

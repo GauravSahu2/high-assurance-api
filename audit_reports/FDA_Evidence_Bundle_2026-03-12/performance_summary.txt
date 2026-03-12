@@ -1,0 +1,1 @@
+k6 Load Test: FAILED p(95) latency threshold. Architecture scaling required.

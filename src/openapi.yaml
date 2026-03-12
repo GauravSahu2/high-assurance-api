@@ -1,0 +1,46 @@
+openapi: 3.1.0
+info:
+  title: High-Assurance Financial API
+  version: 1.0.0
+  description: API for secure, FDA/GxP compliant financial transactions.
+servers:
+  - url: https://api.highassurance.dev/v1
+    description: Production Server
+tags:
+  - name: Transfers
+    description: Endpoints related to moving funds between accounts safely.
+paths:
+  /transfer:
+    post:
+      tags:
+        - Transfers
+      summary: Secure Money Transfer
+      description: Executes an atomic, idempotent transfer of funds between two accounts.
+      operationId: executeTransfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - account_from
+                - account_to
+                - amount
+              properties:
+                account_from:
+                  type: string
+                account_to:
+                  type: string
+                amount:
+                  type: number
+                  minimum: 0.000001
+      responses:
+        '200':
+          description: Transfer Successful
+        '400':
+          description: Schema Validation Failed
+        '401':
+          description: Unauthorized Token
+        '500':
+          description: Internal Server Error (Must be avoided)
