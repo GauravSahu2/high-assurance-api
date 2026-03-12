@@ -1,46 +1,20 @@
-# High-Assurance Quality Engineering Architecture (20-Tier)
+To make this look perfect in the GitHub web editor, I have combined everything—the professional badges, the 20-tier matrix, and the updated installation steps—into one clean block.Simply copy everything between the lines below and paste it into your README.md edit pane on GitHub:🛡️ High-Assurance Quality Architecture (20-Tier)An enterprise-grade, mathematically verified DevSecOps and Quality Engineering platform designed for strict regulatory compliance (FDA 21 CFR Part 11, Fintech, and Healthcare).This project goes beyond standard unit testing. It implements a 20-Tier Defense-in-Depth testing strategy, validating everything from UI token expiry down to database ACID rollbacks, infrastructure drift, and AI prompt injection.🏗️ Architecture OverviewThe architecture is divided into three critical phases to ensure both functional correctness and operational resilience.Phase 1: Core Logic & SecurityFunctional / BVA: Mathematical verification of input limits and edge cases using Boundary Value Analysis.Security / BOLA: Prevention of Broken Object Level Authorization vulnerabilities.Resilience / Idempotency: Mitigation of duplicate processing during network jitters or retries.Compliance: FDA-grade Zero-Leak PII (Personally Identifiable Information) & Secret scanning.Frontend E2E: Playwright-driven testing for JWT expiry handling and UI graceful degradation.Database State: ACID Transaction Rollback verification to ensure zero state corruption.Edge Infrastructure: Automated TLS/SSL expiry math and WAF DDoS resistance simulation.AI / MCP Boundaries: Defense against prompt injection and tool-call hijacking in AI agents.Phase 2: Integration & PerformanceSynthetic Monitoring: 24/7 API heartbeat and dependency health tracking.Integration Seams: Native JSON Schema contracts & AWS IAM Least-Privilege mocking.Distributed Tracing: X-Correlation-ID propagation testing across asynchronous microservices.Auth Rate Limiting: Verification of brute-force account lockout mechanisms.Dependency Secrets: Git-hook level detection of high-entropy strings (AWS Keys, RSA Tokens).Algorithmic Complexity: $O(N)$ Time & Space complexity enforcement to prevent ReDoS attacks.Concurrency: Mutex Row-Level Locking to prevent "Double Spend" race conditions.Phase 3: Operational Safeguards (Insider Threat)DB Destructive Guards: Enforcing fresh snapshots for all DROP or DELETE queries.Two-Person Rule: Cryptographic Senior-level sign-off required for critical infrastructure changes.Infrastructure Drift: Code-to-Cloud verification between Terraform/Code and Live Cloud State.Deployment Rollbacks: Automated Blue/Green canary rollbacks triggered by 5xx error spikes.Disaster Recovery: Automated validation of backup integrity and restoration success paths.📂 Project StructurePlaintext.
+├── .github/workflows/      # GitHub Actions CI/CD Orchestration
+├── jenkins/pipelines/      # Jenkins Groovy Pipeline Definitions
+├── n8n_workflows/          # Visual Triage & Incident Response JSON
+├── tests/                  # 20-Tier Test Suites (1-20)
+├── run_all_20_layers.sh    # Local Master Orchestrator
+└── README.md               # Engineering Specification
+🚀 Execution & OrchestrationPrerequisitesPython 3.12+k6 (for Load Testing)Playwright (for E2E)1. Installation & Environment SetupTo replicate the verified environment, run:Bash# Clone the repository
+git clone https://github.com/GauravSahu2/high-assurance-api.git
+cd high-assurance-api
 
-An enterprise-grade, mathematically verified DevSecOps and Quality Engineering platform designed for strict regulatory compliance (FDA 21 CFR Part 11, Fintech, and Healthcare).
-
-## 🏗️ Architecture Overview
-
-This project goes beyond standard unit testing. It implements a **20-Tier Defense-in-Depth** testing strategy, validating everything from UI token expiry down to database ACID rollbacks, infrastructure drift, and AI prompt injection.
-
-### The 20 Tiers of Assurance:
-
-**Phase 1: Core Logic & Security**
-1. **Functional / BVA:** Extreme boundary testing.
-2. **Security / BOLA:** Broken Object Level Authorization prevention.
-3. **Resilience / Idempotency:** Network glitch double-charge prevention.
-4. **Compliance:** FDA-grade Zero-Leak PII & Secret scanning.
-5. **Frontend E2E:** JWT Expiry & UI graceful degradation (Playwright).
-6. **Database State:** ACID Transaction Rollback verification.
-7. **Edge Infrastructure:** TLS Expiry math & WAF DDoS resistance.
-8. **AI / MCP Boundaries:** Prompt Injection & Tool boundary enforcement.
-
-**Phase 2: Integration & Performance**
-9. **Synthetic Monitoring:** 24/7 API heartbeat tracking.
-10. **Integration Seams:** Native JSON Schema contracts & AWS IAM Least-Privilege mocking.
-11. **Distributed Tracing:** X-Correlation-ID microservice tracking.
-12. **Auth Rate Limiting:** Brute-force account lockouts.
-13. **Dependency Secrets:** Git-hook level AWS & RSA key detection.
-14. **Algorithmic Complexity:** O(N) Time & Space complexity (ReDoS prevention).
-15. **Concurrency:** Mutex Row-Level Locking to prevent Double-Spend race conditions.
-
-**Phase 3: Operational Safeguards (Insider Threat)**
-16. **DB Destructive Guards:** Requires fresh snapshots for `DROP`/`DELETE` queries.
-17. **Two-Person Rule:** Cryptographic Senior-level sign-off for critical infrastructure changes.
-18. **Infrastructure Drift:** Code-to-Cloud firewall state verification.
-19. **Deployment Rollbacks:** Automated Blue/Green canary rollbacks on 500 errors.
-20. **Disaster Recovery:** Automated backup integrity and file-size verification.
-
-## 🚀 Execution & Orchestration
-
-### Local Execution (The Master Runner)
-To execute all 20 layers locally within a secure, isolated virtual environment:
-```bash
-# 1. Activate the environment
+# Create and activate virtual environment
+python3 -m venv venv
 source venv/bin/activate
 
-# 2. Run the master orchestrator
+# Install exact dependencies
+pip install -r requirements.txt
+2. Local Execution (The Master Runner)To execute all 20 layers locally within a secure, isolated environment:Bashchmod +x run_all_20_layers.sh
 ./run_all_20_layers.sh
+3. CI/CD & Incident ResponseGitHub Actions: Every PR triggers the 20-tier suite and k6 stress tests automatically.Jenkins: Enterprise-grade pipeline for self-hosted execution.n8n Triage: High-entropy failures are routed to PagerDuty; functional bugs route to Jira/Slack.© 2026 Gaurav Sahu - High-Assurance Quality Engineering
