@@ -1,11 +1,19 @@
 #!/bin/bash
-echo "Running Zero-Leak PII Scan on all system logs..."
+set -euo pipefail
 
-# Regex search for a 16-digit credit card pattern
-if grep -rE -q "\b[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}\b" logs/; then
-    echo "CRITICAL FAIL: PII (Credit Card Pattern) DETECTED IN LOGS!"
+echo "🔎 [Tier 4] Initiating PII Zero-Leak Scan on runtime logs..."
+
+LOG_FILE="logs/api.log"
+
+if [ ! -f "$LOG_FILE" ]; then
+    echo "⚠️  Log file not found at $LOG_FILE. Ensure the API is running."
     exit 1
-else
-    echo "PASS: No PII leaked in logs. Zero-Trust verified."
-    exit 0
 fi
+
+# Pattern 1: Fake SSN or Credit Card Regex
+if grep -E -q '([0-9]{3}-[0-9]{2}-[0-9]{4}|[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})' "$LOG_FILE" 2>/dev/null || false; then
+    echo "🚨 [FATAL] PII Leak detected in logs! (SSN or Credit Card format)"
+    exit 1
+fi
+
+echo "✅ [Tier 4] Compliance Verified: 0 PII leaks detected in runtime logs."

@@ -1,3 +1,22 @@
+# --- Environments ---
 venv/
+node_modules/
+.env
+.env.example
+
+# --- Python / Build ---
 __pycache__/
+*.py[cod]
+*$py.class
 .pytest_cache/
+test-results/
+
+# --- High-Assurance Artifacts ---
+# These are captured by CI/CD artifacts, not Git
+logs/*.log
+audit_reports/FDA_Evidence_Bundle_*/
+audit_reports/*.zip
+playwright-report/
+blob-report/
+playwright/.local-browsers/
+full_codebase_dump.txt

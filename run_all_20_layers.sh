@@ -1,47 +1,51 @@
 #!/bin/bash
+set -euo pipefail
 
-echo "====================================================================="
-echo " 🚀 INITIATING 20-TIER HIGH-ASSURANCE PIPELINE RUN 🚀"
-echo "====================================================================="
-sleep 1
+# ANSI Color Codes
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# Phase 1: Core Python, Security, DB, and Math Proofs
-echo -e "\n---> [PHASE 1] Executing Logic, Math, Security & Operational Guards (Pytest)..."
-pytest -v -s \
-  tests/1_functional/ \
-  tests/2_security/ \
-  tests/3_resilience/test_idempotency.py \
-  tests/6_database_state/ \
-  tests/8_ai_mcp_boundaries/ \
-  tests/10_integration_contracts/ \
-  tests/11_observability_tracing/ \
-  tests/12_auth_rate_limiting/ \
-  tests/14_algorithmic_complexity/ \
-  tests/15_concurrency_race_conditions/ \
-  tests/16_db_operational_safeguards/ \
-  tests/17_two_person_rule/ \
-  tests/18_infra_drift_prevention/ \
-  tests/19_deployment_rollbacks/ \
-  tests/20_disaster_recovery/
+mkdir -p logs audit_reports docs
+echo "🛡️  INITIATING FULL 20-TIER VALIDATION..."
 
-# Phase 2: Live (but safe) Internet Monitoring
-echo -e "\n---> [PHASE 2] Executing Live Synthetic API Monitoring..."
-python3 tests/9_synthetic_monitoring/heartbeat_monitor.py
+# 1. Boot API
+python3 src/main.py > logs/api.log 2>&1 &
+API_PID=$!
 
-# Phase 3: Edge, Secrets, and Compliance Bash Scanners
-echo -e "\n---> [PHASE 3] Executing Edge Security & FDA Compliance Scanners..."
-./tests/7_edge_and_infrastructure/edge_security_checks.sh
-./tests/13_dependency_secrets/scan_hardcoded_secrets.sh
+cleanup() {
+    kill $API_PID 2>/dev/null || true
+}
+trap cleanup EXIT
+
+echo "⏳ Waiting for API to bind..."
+until curl -s http://127.0.0.1:8000/health > /dev/null; do sleep 1; done
+echo "✅ API is Live."
+
+# 2. RUN PYTEST
+echo "▶️  Tiers 1-8: Logic & Security (Pytest)"
+echo -e "   ${YELLOW}[NOTE] Upstream deprecation warnings suppressed. See docs/WARNING_SUPPRESSION.md.${NC}"
+pytest tests/ --junitxml=audit_reports/test_results.xml
+
+# ♻️  RESET API STATE
+echo "♻️  Resetting API state to clear IP-based lockouts before Frontend E2E..."
+kill $API_PID 2>/dev/null || true
+python3 src/main.py >> logs/api.log 2>&1 &
+API_PID=$!
+until curl -s http://127.0.0.1:8000/health > /dev/null; do sleep 1; done
+
+echo "▶️  Tier 5: Playwright Frontend E2E"
+npx playwright test
+
+echo "▶️  Tier 4-13: Compliance & Secrets"
 ./tests/4_compliance/zero_leak_check.sh
+./tests/7_edge_and_infrastructure/edge_security_checks.sh
+python3 tests/9_synthetic_monitoring/heartbeat_monitor.py
+./tests/13_dependency_secrets/scan_hardcoded_secrets.sh
 
-# Phase 4: Space-Grade Load Testing
-echo -e "\n---> [PHASE 4] Executing Chaos & Stress Testing (k6)..."
-# We run the k6 test last because it is the heaviest operation
-k6 run tests/3_resilience/space_grade_load.js
+echo "▶️  Tier 14: k6 Load Testing"
+k6 run --env AUTH_TOKEN="${APP_AUTH_TOKEN:-valid_admin_token}" tests/14_performance_complexity/k6_stress_profile.js
 
-# Note: Folder 5 (Frontend E2E) is intentionally bypassed here because it requires 
-# downloading a 300MB headless browser (Playwright), keeping your PC lightweight!
+echo "📦 Finalizing Audit Evidence..."
+./generate_audit_bundle.sh
 
-echo -e "\n====================================================================="
-echo " ✅ ALL 20 LAYERS EXECUTED SAFELY, LOCALLY, AND FOR $0.00 ✅"
-echo "====================================================================="
+echo "✅ ALL 20 TIERS EXECUTED SUCCESSFULLY."
