@@ -6,7 +6,6 @@ on:
   push:
     branches: [ main ]
 
-# Cancels in-progress runs if new commits are pushed to the same PR
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,23 +14,47 @@ jobs:
   tier-01-to-08-security-logic:
     name: Phase 1 (Core Logic & Security)
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # Pipeline SLA
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip' # Deterministic caching strategy
-      - name: Run Security & Logic Suite
-        run: echo "Executing BVA, BOLA, and ACID Rollback tests..."
+          cache: 'pip'
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Boot API & Run Security/Logic Suite (Pytest)
+        run: |
+          python src/main.py &
+          sleep 3
+          pytest -v tests/ --junitxml=test_results.xml
 
   tier-09-to-15-integration-perf:
     name: Phase 2 (Integration & Performance)
-    needs: tier-01-to-08-security-logic # DAG: Only run if Phase 1 passes
+    needs: tier-01-to-08-security-logic
     runs-on: ubuntu-latest
-    timeout-minutes: 15 # Pipeline SLA
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - name: Set up Python (for target API)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install Dependencies & Boot Target API
+        run: |
+          pip install -r requirements.txt
+          python src/main.py &
+          sleep 3
       - name: k6 Load & Stress Testing
-        run: echo "Executing k6 thresholds..."
+        run: k6 run tests/14_performance_complexity/k6_stress_profile.js
