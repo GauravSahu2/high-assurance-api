@@ -1,6 +1,6 @@
 # 🛡️ High-Assurance Quality Architecture (20-Tier)
 
-[![20-Tier CI/CD](https://github.com/GauravSahu2/high-assurance-api/actions/workflows/high-assurance-pipeline.yml/badge.svg)](https://github.com/GauravSahu2/high-assurance-api/actions) [![k6](https://img.shields.io/badge/load--test-k6-brightgreen)](#) [![playwright](https://img.shields.io/badge/e2e-playwright-blue)](#) [![python](https://img.shields.io/badge/python-3.12%2B-blue)](#) ![License](https://img.shields.io/badge/license-Proprietary-red.svg)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-20%20Tiers%20Passing-success?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/GauravSahu2/high-assurance-api/actions) [![k6](https://img.shields.io/badge/Load%20Test-k6-7D64FF?style=for-the-badge&logo=k6&logoColor=white)](#) [![Playwright](https://img.shields.io/badge/E2E-Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](#) [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](#) [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](#)
 
 A property-tested DevSecOps and quality engineering platform designed for strict regulatory environments (Fintech, Healthcare). This platform implements a 20-tier defense-in-depth testing strategy validating everything from live browser UI authentication down to DB ACID rollbacks, cloud infrastructure drift detection, and AI prompt-injection protections — all producing cryptographically signed, timestamped FDA-grade audit bundles.
 
