@@ -2,6 +2,7 @@ name: High-Assurance FDA Pipeline
 
 on: [push, pull_request]
 
+# Global Environment Variables
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   APP_AUTH_TOKEN: "valid_admin_token"
@@ -33,18 +34,26 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install pip-tools
-          pip-compile requirements.in -o requirements.txt
-          pip install -r requirements.txt
+          # We check if requirements.in exists before compiling
+          if [ -f requirements.in ]; then
+            pip-compile requirements.in -o requirements.txt
+            pip install -r requirements.txt
+          else
+            echo "⚠️ requirements.in not found, installing direct packages..."
+            pip install flask flask-cors requests pytest moto boto3 jsonschema
+          fi
 
       - name: Install Playwright
         run: |
           npm install @playwright/test
+          # --with-deps is CRITICAL for GitHub runners to install system libraries
           npx playwright install --with-deps chromium
 
       - name: Execute 20-Tier Orchestrator
         run: |
           chmod +x run_all_20_layers.sh
-          ./run_all_20_layers.sh
+          # Verbose debugging: bash -x shows exactly where it fails
+          bash -x ./run_all_20_layers.sh
 
       - name: Upload FDA Audit Bundle
         uses: actions/upload-artifact@v4
