@@ -2,31 +2,13 @@ name: High-Assurance FDA Pipeline
 on: [push, pull_request]
 
 jobs:
-  audit:
+  validate-tiers:
     runs-on: ubuntu-latest
-    env:
-      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'password123' }}
-      APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN || 'valid_admin_token' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Install k6
-        run: |
-          # 1. Ensure the keyring directory exists
-          sudo mkdir -p /usr/share/keyrings
-          
-          # 2. Attempt keyserver with a curl fallback (Resilient Design)
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 || {
-            echo "Keyserver failed or dirmngr missing. Falling back to direct HTTPS download..."
-            sudo curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --import
-          }
-          
-          # 3. Add the repo and install
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install -y k6
-
-- name: Install k6
         run: |
           sudo mkdir -p /usr/share/keyrings
           sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 || {
@@ -35,14 +17,16 @@ jobs:
           }
           echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
           sudo apt-get update
-          sudo apt-get install -y k6      - name: Setup Python
+          sudo apt-get install -y k6
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install Dependencies
         run: |
-          pip install pip-tools awscli-local
+          pip install pip-tools
           pip-compile requirements.in -o requirements.txt
           pip install -r requirements.txt
 
@@ -52,7 +36,9 @@ jobs:
           npx playwright install chromium
 
       - name: Execute 20-Tier Orchestrator
-        run: ./run_all_20_layers.sh
+        run: |
+          chmod +x run_all_20_layers.sh
+          ./run_all_20_layers.sh
 
       - name: Upload FDA Audit Bundle
         uses: actions/upload-artifact@v4
