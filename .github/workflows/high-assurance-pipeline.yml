@@ -1,5 +1,11 @@
 name: High-Assurance FDA Pipeline
+
 on: [push, pull_request]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  APP_AUTH_TOKEN: "valid_admin_token"
+  ADMIN_PASSWORD: "password123"
 
 jobs:
   validate-tiers:
@@ -33,7 +39,7 @@ jobs:
       - name: Install Playwright
         run: |
           npm install @playwright/test
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
 
       - name: Execute 20-Tier Orchestrator
         run: |
