@@ -111,7 +111,7 @@ jobs:
         # Disabled until SONAR_TOKEN secret is configured in repo settings
         # Setup: https://sonarcloud.io → import repo → copy token →
         # GitHub repo Settings → Secrets → Actions → SONAR_TOKEN
-        if: false
+        if: always()
         uses: SonarSource/sonarcloud-github-action@master
         continue-on-error: true
         env:
@@ -119,8 +119,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: "Coverage — Export XML for SonarCloud"
-        # Only needed when SonarCloud is enabled
-        if: false
+        if: always()
         run: |
           export PYTHONPATH=src
           pytest --cov=src --cov-report=xml:coverage.xml -q || true
