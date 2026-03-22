@@ -10,13 +10,14 @@ import boto3
 import jwt
 from botocore.exceptions import ClientError
 from flask import Flask, Response, g, jsonify, request, send_from_directory
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 # ── OpenTelemetry ─────────────────────────────────────────────────────────────
 from pythonjsonlogger import jsonlogger  # type: ignore[import-untyped]
 from werkzeug.security import check_password_hash, generate_password_hash
 
 try:
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # noqa: F401
 
     _otlp_available = True
 except ImportError:  # pragma: no cover
@@ -32,6 +33,17 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 app = Flask(__name__)
+
+_REQUEST_COUNT = Counter(
+    "flask_http_request_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"],
+)
+_REQUEST_LATENCY = Histogram(
+    "flask_http_request_duration_seconds",
+    "HTTP request latency",
+    ["method", "endpoint"],
+)
 
 db_lock = threading.Lock()
 processed_transactions: dict[str, float] = {}
@@ -104,12 +116,18 @@ def verify_jwt(auth_header: str) -> dict[str, str] | None:
         return None
 
 
+@app.route("/metrics")
+def metrics_endpoint() -> Response:
+    """Expose Prometheus metrics for scraping."""
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+
 @app.before_request
 def security_layer() -> "tuple[Response, int] | None":
     g.correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
     ip: str = request.remote_addr or "unknown"
 
-    if os.getenv("CHAOS_MODE") == "true" and random.random() < 0.05:
+    if os.getenv("CHAOS_MODE") == "true" and random.random() < 0.05:  # noqa: S311
         app.logger.warning("chaos_strike", extra={"trace_id": g.correlation_id})
         return jsonify({"error": "Chaos Monkey Strike - Service Unavailable"}), 503
 
@@ -192,7 +210,7 @@ def transfer() -> tuple[Response, int]:
     amount = data.get("amount")
     idem_key = request.headers.get("X-Idempotency-Key")
 
-    if not idem_key or not isinstance(amount, (int, float)) or amount < 0.000001 or amount > 1000.0:
+    if not idem_key or not isinstance(amount, int | float) or amount < 0.000001 or amount > 1000.0:
         return jsonify({"error": "Invalid Request"}), 400
 
     with db_lock:

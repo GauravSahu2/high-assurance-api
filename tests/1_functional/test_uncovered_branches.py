@@ -146,3 +146,14 @@ def test_reset_endpoint_blocked_outside_test_mode():
         response = c.post("/test/reset")
     os.environ["TEST_MODE"] = "true"  # restore for subsequent tests
     assert response.status_code == 404
+
+
+def test_metrics_endpoint_returns_prometheus_data(client):
+    """Prometheus /metrics endpoint must return valid text/plain metrics."""
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert (
+        b"flask_http_request_total" in response.data
+        or b"# HELP" in response.data
+        or response.content_type.startswith("text/plain")
+    )
