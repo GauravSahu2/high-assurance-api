@@ -39,8 +39,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          pip install pip-tools awscli-local
-          pip-compile requirements.in -o requirements.txt
+          pip install awscli-local
           pip install -r requirements.txt
 
       - name: "Security Scan — Bandit"
@@ -109,14 +108,19 @@ jobs:
           kill %1 2>/dev/null || true
 
       - name: "Quality Gate — SonarCloud scan"
+        # Disabled until SONAR_TOKEN secret is configured in repo settings
+        # Setup: https://sonarcloud.io → import repo → copy token →
+        # GitHub repo Settings → Secrets → Actions → SONAR_TOKEN
+        if: false
         uses: SonarSource/sonarcloud-github-action@master
-        if: always()
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: "Coverage — Export XML for SonarCloud"
+        # Only needed when SonarCloud is enabled
+        if: false
         run: |
           export PYTHONPATH=src
           pytest --cov=src --cov-report=xml:coverage.xml -q || true
