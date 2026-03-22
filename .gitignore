@@ -43,3 +43,4 @@ audit_final.log
 audit_execution_results.log
 full_audit_execution.log
 mutation_execution_log.txt
+.mutmut-config
