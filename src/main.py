@@ -1,103 +1,206 @@
-import uuid
-import time
 import logging
 import os
+import random
 import threading
-import json
-from flask import Flask, jsonify, request, g, has_request_context
-from flask_cors import CORS
+import time
+import uuid
+from datetime import UTC, datetime, timedelta
 
-class JSONFormatter(logging.Formatter):
-    def format(self, record):
-        trace_id = getattr(g, 'correlation_id', 'N/A') if has_request_context() else 'SYSTEM'
-        log_record = {
-            "timestamp": self.formatTime(record),
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "trace_id": trace_id
-        }
-        return json.dumps(log_record)
+import jwt
+from flask import Flask, g, jsonify, request, send_from_directory
+from prometheus_flask_instrumentator import Instrumentator
+from pythonjsonlogger import jsonlogger
+from werkzeug.security import check_password_hash, generate_password_hash
 
 logger = logging.getLogger()
 handler = logging.StreamHandler()
-handler.setFormatter(JSONFormatter())
+formatter = jsonlogger.JsonFormatter(
+    "%(asctime)s %(levelname)s %(name)s %(message)s", rename_fields={"asctime": "timestamp", "levelname": "level"}
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 db_lock = threading.Lock()
-
-ADMIN_PASS = os.getenv("ADMIN_PASSWORD", "password123")
-VALID_TOKEN = os.getenv("APP_AUTH_TOKEN", "valid_admin_token")
-
-accounts = {"user_1": 1000.0}
-processed_transactions = set()
+processed_transactions = {}
 failed_login_attempts = {}
 
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8000,http://localhost:3000").split(",")
+ADMIN_PASS_HASH = generate_password_hash(os.getenv("ADMIN_PASSWORD", "password123"))
+JWT_SECRET = os.getenv("JWT_SECRET", "super-secure-dev-secret-key-12345")
+
+users = {
+    "admin": ADMIN_PASS_HASH,
+    "user_1": generate_password_hash("password111"),
+    "user_2": generate_password_hash("password222"),
+}
+accounts = {"user_1": 1000.0, "user_2": 500.0}
+
+
+def generate_jwt(username):
+    payload = {
+        "sub": username,
+        "role": "admin" if username == "admin" else "user",
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+def verify_jwt(auth_header):
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header.split(" ")[1]
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+
 @app.before_request
-def start_request():
-    g.correlation_id = request.headers.get('X-Correlation-ID', str(uuid.uuid4()))
+def security_layer():
+    g.correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
     ip = request.remote_addr
-    # THE FIX: Rate limit ONLY applies to /login
-    if request.path == '/login' and failed_login_attempts.get(ip, 0) >= 5:
-        logger.warning(f"Locked IP {ip} attempted access")
+
+    if os.getenv("CHAOS_MODE") == "true" and random.random() < 0.05:
+        app.logger.warning("chaos_strike", extra={"trace_id": g.correlation_id})
+        return jsonify({"error": "Chaos Monkey Strike - Service Unavailable"}), 503
+
+    if failed_login_attempts.get(ip, 0) >= 5 and request.path == "/login":
         return jsonify({"error": "Account locked"}), 429
 
+
 @app.after_request
-def end_request(response):
-    response.headers['X-Correlation-ID'] = g.correlation_id
+def secure_headers(response):
+    trace_id = getattr(g, "correlation_id", "SYSTEM")
+    response.headers["X-Correlation-ID"] = trace_id
+
+    origin = request.headers.get("Origin", "")
+    if origin in ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    elif os.getenv("TEST_MODE") == "true":
+        response.headers["Access-Control-Allow-Origin"] = "*"
+
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization,X-Idempotency-Key"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+
+    app.logger.info(
+        "api_request",
+        extra={
+            "trace_id": trace_id,
+            "method": request.method,
+            "path": request.path,
+            "status": response.status_code,
+            "ip": request.remote_addr,
+        },
+    )
     return response
 
-@app.route('/', methods=['GET'])
+
+@app.route("/openapi.yaml", methods=["GET"])
+def serve_openapi():
+    return send_from_directory(os.getcwd(), "openapi.yaml")
+
+
+@app.route("/", methods=["GET"])
 def index():
-    return """<html><body><h2>Secure Portal</h2><input id='user' placeholder='User'/><input id='pass' type='password' placeholder='Pass'/><button id='btn'>Login</button><div id='msg'></div><script>document.getElementById('btn').onclick = async () => { const res = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username: document.getElementById('user').value, password: document.getElementById('pass').value})}); document.getElementById('msg').innerText = res.ok ? 'Token Received' : 'Access Denied'; }</script></body></html>"""
+    return '<html><body><input id="user"><input id="pass" type="password"><button id="btn">Login</button><div id="msg">Ready</div><script>document.getElementById("btn").onclick = async () => { const u = document.getElementById("user").value; const p = document.getElementById("pass").value; const res = await fetch("/login", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username: u, password: p})}); const data = await res.json(); document.getElementById("msg").innerText = data.token ? "Token Received" : (data.error || "Access Denied"); }</script></body></html>'
 
-@app.route('/login', methods=['POST'])
+
+@app.route("/login", methods=["POST"])
 def login():
-    data = request.get_json() or {}
-    time.sleep(0.05) 
-    if data.get("username") == "admin" and data.get("password") == ADMIN_PASS:
-        failed_login_attempts[request.remote_addr] = 0
-        logger.info("Successful login")
-        return jsonify({"token": VALID_TOKEN}), 200
-    failed_login_attempts[request.remote_addr] = failed_login_attempts.get(request.remote_addr, 0) + 1
-    logger.warning("Failed login attempt")
-    return jsonify({"error": "Unauthorized"}), 401
+    data = request.get_json()
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid JSON"}), 400
+    username, password = data.get("username", ""), data.get("password", "")
+    if not isinstance(username, str) or not isinstance(password, str) or not username or not password:
+        return jsonify({"error": "Invalid JSON"}), 400
+    ip = request.remote_addr
 
-@app.route('/transfer', methods=['POST'])
+    if username in users:
+        valid = check_password_hash(users[username], password)
+    else:
+        check_password_hash(ADMIN_PASS_HASH, "dummy_verify")
+        valid = False
+
+    if valid:
+        failed_login_attempts[ip] = 0
+        return jsonify({"token": generate_jwt(username)}), 200
+
+    failed_login_attempts[ip] = failed_login_attempts.get(ip, 0) + 1
+    return jsonify({"error": "Access Denied"}), 401
+
+
+@app.route("/transfer", methods=["POST"])
 def transfer():
-    if request.headers.get("Authorization") != f"Bearer {VALID_TOKEN}":
-        logger.warning("Unauthorized transfer attempt")
-        return jsonify({"error": "Forbidden"}), 403
+    auth_data = verify_jwt(request.headers.get("Authorization", ""))
+    if not auth_data:
+        return jsonify({"error": "Unauthorized"}), 401
 
-    idem_key = request.headers.get('X-Idempotency-Key')
-    if not idem_key:
-        return jsonify({"error": "Missing Idempotency-Key"}), 400
-        
-    amount = (request.get_json() or {}).get("amount", 0)
+    data = request.get_json()
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid Body"}), 400
+
+    amount = data.get("amount")
+    idem_key = request.headers.get("X-Idempotency-Key")
+
+    if not idem_key or not isinstance(amount, (int, float)) or amount < 0.000001 or amount > 1000.0:
+        return jsonify({"error": "Invalid Request"}), 400
 
     with db_lock:
         if idem_key in processed_transactions:
-            return jsonify({"error": "Duplicate", "status": "already_processed"}), 409
+            return jsonify({"error": "Duplicate"}), 409
         if accounts["user_1"] >= amount:
-            time.sleep(0.01) 
             accounts["user_1"] -= amount
-            processed_transactions.add(idem_key)
-            logger.info(f"Transfer successful: {amount}")
+            processed_transactions[idem_key] = time.time()
             return jsonify({"new_balance": accounts["user_1"]}), 200
-    
     return jsonify({"error": "Insufficient funds"}), 400
 
-@app.route('/api/resource', methods=['GET'])
-def protected_resource():
-    if request.headers.get("Authorization") != f"Bearer {VALID_TOKEN}":
-        return jsonify({"error": "Forbidden"}), 403
-    return jsonify({"data": "Secure Resource Access"}), 200
 
-@app.route('/health', methods=['GET'])
+@app.route("/api/users/<user_id>", methods=["GET"])
+def get_user_data(user_id):
+    auth_data = verify_jwt(request.headers.get("Authorization", ""))
+    if not auth_data:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if auth_data["sub"] != user_id and auth_data["role"] != "admin":
+        return jsonify({"error": "Forbidden"}), 403
+    return jsonify({"data": f"Secret data for {user_id}"}), 200
+
+
+@app.route("/api/accounts/<user_id>/balance", methods=["GET"])
+def get_balance(user_id):
+    auth_data = verify_jwt(request.headers.get("Authorization", ""))
+    if not auth_data:
+        return jsonify({"error": "Unauthorized"}), 401
+    if auth_data["sub"] != user_id and auth_data["role"] != "admin":
+        return jsonify({"error": "Forbidden"}), 403
+    if user_id not in accounts:
+        return jsonify({"error": "Not Found"}), 404
+    return jsonify({"user_id": user_id, "balance": accounts[user_id]}), 200
+
+
+@app.route("/test/reset", methods=["POST"])
+def reset_state():
+    if os.getenv("TEST_MODE") != "true":
+        return jsonify({"error": "Not Found"}), 404
+
+    failed_login_attempts.clear()
+    processed_transactions.clear()
+    accounts["user_1"] = 1000.0
+    accounts["user_2"] = 500.0
+    return jsonify({"status": "test_state_reset"}), 200
+
+
+@app.route("/health", methods=["GET", "OPTIONS"])
 def health():
     return jsonify({"status": "healthy"}), 200
 
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8000, threaded=True)
+
+if __name__ == "__main__":  # pragma: no cover
+    app.run(host="127.0.0.1", port=8000, threaded=True)

@@ -1,15 +1,21 @@
-import requests
-import pytest
+def test_bola_authorized_access_own_resource(client, token_factory):
+    headers = {"Authorization": f"Bearer {token_factory('user_1')}"}
+    res = client.get("/api/users/user_1", headers=headers)
+    assert res.status_code == 200
 
-def test_bola_unauthorized_access_is_blocked(api_base_url):
-    """Verifies that a user cannot access resources without a valid token."""
-    url = f"{api_base_url}/api/resource"
-    headers = {"Authorization": "Bearer hacker_token"}
-    response = requests.get(url, headers=headers)
-    assert response.status_code == 403
 
-def test_bola_authorized_access_is_permitted(api_base_url, auth_header):
-    """Verifies legitimate access works using the centralized fixture."""
-    url = f"{api_base_url}/api/resource"
-    response = requests.get(url, headers=auth_header)
-    assert response.status_code == 200
+def test_bola_unauthorized_access_other_resource(client, token_factory):
+    headers = {"Authorization": f"Bearer {token_factory('user_2')}"}
+    res = client.get("/api/users/user_1", headers=headers)
+    assert res.status_code == 403
+
+
+def test_bola_admin_access_override(client, token_factory):
+    headers = {"Authorization": f"Bearer {token_factory('admin', 'admin')}"}
+    res = client.get("/api/users/user_1", headers=headers)
+    assert res.status_code == 200
+
+
+def test_unauthenticated_access_blocked(client):
+    res = client.get("/api/users/user_1")
+    assert res.status_code == 401

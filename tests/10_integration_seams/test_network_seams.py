@@ -1,14 +1,8 @@
-import requests
+from main import app as flask_app
 
-TARGET_URL = "http://127.0.0.1:8000/health"
 
 def test_cors_rejects_malicious_origin():
-    """
-    Verifies the API does not blindly echo back malicious CORS origins.
-    """
-    headers = {"Origin": "https://evil-hacker-site.com"}
-    response = requests.options(TARGET_URL, headers=headers)
-    
-    allowed_origin = response.headers.get('Access-Control-Allow-Origin')
-    # Assert that the API explicitly denied the evil site
-    assert allowed_origin != 'https://evil-hacker-site.com'
+    flask_app.config["TESTING"] = True
+    with flask_app.test_client() as c:
+        response = c.options("/health", headers={"Origin": "https://evil-hacker-site.com"})
+    assert response.headers.get("Access-Control-Allow-Origin") != "https://evil-hacker-site.com"

@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test('Frontend UI enforces authentication boundary', async ({ page }) => {
   await page.goto('/');
-  
+
   await page.fill('#user', 'hacker');
   await page.fill('#pass', 'wrongpass');
   await page.click('#btn');

@@ -1,0 +1,7 @@
+[coverage:run]
+omit =
+    */site-packages/*
+
+[coverage:report]
+exclude_lines =
+    if __name__ == .__main__.:
