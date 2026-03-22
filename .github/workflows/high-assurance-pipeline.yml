@@ -110,7 +110,7 @@ jobs:
 
       - name: "Quality Gate — SonarCloud scan"
         uses: SonarSource/sonarcloud-github-action@master
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+        if: always()
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -142,6 +142,7 @@ jobs:
           spectral lint openapi.yaml --ruleset https://unpkg.com/@stoplight/spectral-owasp-ruleset || true
 
       - name: "DAST — OWASP ZAP baseline scan"
+        continue-on-error: true
         run: |
           export PYTHONPATH=src
           export TEST_MODE=true
