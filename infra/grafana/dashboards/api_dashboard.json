@@ -1,0 +1,26 @@
+{
+  "title": "High-Assurance API — Four Golden Signals",
+  "uid": "high-assurance-api",
+  "panels": [
+    {
+      "title": "Request Rate (RPS)",
+      "type": "stat",
+      "targets": [{"expr": "rate(flask_http_request_total[5m])"}]
+    },
+    {
+      "title": "Error Rate (%)",
+      "type": "stat",
+      "targets": [{"expr": "rate(flask_http_request_total{status=~'5..'}[5m]) / rate(flask_http_request_total[5m]) * 100"}]
+    },
+    {
+      "title": "P95 Latency (ms)",
+      "type": "stat",
+      "targets": [{"expr": "histogram_quantile(0.95, rate(flask_http_request_duration_seconds_bucket[5m])) * 1000"}]
+    },
+    {
+      "title": "In-flight Requests",
+      "type": "stat",
+      "targets": [{"expr": "flask_http_request_exceptions_total"}]
+    }
+  ]
+}

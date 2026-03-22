@@ -1,0 +1,7 @@
+# urllib3 CVEs below are blocked by botocore's urllib3<2 constraint.
+# botocore pins urllib3<2; upgrading breaks boto3. Accepted risk for portfolio.
+# Tracked: https://github.com/boto/botocore/issues/2926
+CVE-2025-50181
+CVE-2025-66418
+CVE-2025-66471
+CVE-2026-21441

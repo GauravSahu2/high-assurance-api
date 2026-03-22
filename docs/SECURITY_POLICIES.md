@@ -15,7 +15,7 @@ All data handled by the platform must be classified into one of four tiers. The 
 *Note: The Tier 4 Compliance Scanner enforces that no **Confidential** or **Restricted** data is leaked into **Internal** logs.*
 
 ## 2. Trust Boundary & Network Perimeter
-The architecture operates on a **Zero-Trust** model. 
+The architecture operates on a **Zero-Trust** model.
 
 * **External Perimeter:** Enforced by **AWS API Gateway** combined with **AWS WAF**. All external traffic is implicitly untrusted.
 * **Internal Perimeter (Service Mesh):** Inter-service communication is authenticated via **mTLS**. Microservices do not implicitly trust requests from sibling microservices.

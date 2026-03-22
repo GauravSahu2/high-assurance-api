@@ -25,6 +25,6 @@ Unstructured logs are prohibited. All services must emit logs in JSON format adh
   "user_id": "string (Hashed/Anonymized)",
   "event": "string (Discrete event taxonomy)",
   "metrics": {}
-} 
+}
 
 

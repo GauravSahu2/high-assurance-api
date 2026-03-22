@@ -1,0 +1,17 @@
+# Global owners — all changes require review
+*                           @GauravSahu2
+
+# Production source — senior review required
+src/                        @GauravSahu2
+openapi.yaml                @GauravSahu2
+src/openapi.yaml            @GauravSahu2
+
+# Security-critical tests
+tests/2_security/           @GauravSahu2
+tests/2_security_bola/      @GauravSahu2
+tests/12_auth_rate_limiting/ @GauravSahu2
+
+# CI/CD pipeline — any change here is a high-risk change
+.github/                    @GauravSahu2
+run_mutations.sh            @GauravSahu2
+generate_audit_bundle.sh    @GauravSahu2

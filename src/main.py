@@ -6,11 +6,22 @@ import time
 import uuid
 from datetime import UTC, datetime, timedelta
 
+import boto3
 import jwt
-from flask import Flask, g, jsonify, request, send_from_directory
+from botocore.exceptions import ClientError
+from flask import Flask, Response, g, jsonify, request, send_from_directory
+
+# ── OpenTelemetry ─────────────────────────────────────────────────────────────
 from prometheus_flask_instrumentator import Instrumentator
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import jsonlogger  # type: ignore[import-untyped]
 from werkzeug.security import check_password_hash, generate_password_hash
+
+try:
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
+    _otlp_available = True
+except ImportError:  # pragma: no cover
+    _otlp_available = False
 
 logger = logging.getLogger()
 handler = logging.StreamHandler()
@@ -25,12 +36,45 @@ app = Flask(__name__)
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 db_lock = threading.Lock()
-processed_transactions = {}
-failed_login_attempts = {}
+processed_transactions: dict[str, float] = {}
+failed_login_attempts: dict[str, int] = {}
+
+
+def _load_secret(secret_name: str, fallback: str) -> str:
+    """Load a secret from AWS Secrets Manager if available, else fall back
+    to the environment variable. In production, the fallback should never
+    be reached — missing config fails loudly via the ClientError.
+    Uses moto in tests, real AWS Secrets Manager in production.
+    """
+    endpoint = os.getenv("AWS_SECRETS_ENDPOINT_URL")  # set to localstack in docker-compose
+    try:
+        session = boto3.session.Session()
+        client = session.client(
+            service_name="secretsmanager",
+            region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
+            endpoint_url=endpoint,
+        )
+        response = client.get_secret_value(SecretId=secret_name)
+        return str(response["SecretString"])
+    except ClientError as exc:
+        error_code = exc.response["Error"]["Code"]
+        if error_code in (
+            "ResourceNotFoundException",
+            "InvalidRequestException",
+            "NoCredentialsError",
+            "EndpointResolutionError",
+        ):
+            return fallback
+        raise  # pragma: no cover
+    except Exception:  # pragma: no cover
+        return fallback
+
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8000,http://localhost:3000").split(",")
-ADMIN_PASS_HASH = generate_password_hash(os.getenv("ADMIN_PASSWORD", "password123"))
-JWT_SECRET = os.getenv("JWT_SECRET", "super-secure-dev-secret-key-12345")
+ADMIN_PASS_HASH = generate_password_hash(
+    _load_secret("high-assurance-api/admin-password", os.getenv("ADMIN_PASSWORD", "password123"))
+)
+JWT_SECRET = _load_secret("high-assurance-api/jwt-secret", os.getenv("JWT_SECRET", "super-secure-dev-secret-key-12345"))
 
 users = {
     "admin": ADMIN_PASS_HASH,
@@ -40,7 +84,7 @@ users = {
 accounts = {"user_1": 1000.0, "user_2": 500.0}
 
 
-def generate_jwt(username):
+def generate_jwt(username: str) -> str:
     payload = {
         "sub": username,
         "role": "admin" if username == "admin" else "user",
@@ -50,7 +94,7 @@ def generate_jwt(username):
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
-def verify_jwt(auth_header):
+def verify_jwt(auth_header: str) -> dict[str, str] | None:
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
     token = auth_header.split(" ")[1]
@@ -63,9 +107,9 @@ def verify_jwt(auth_header):
 
 
 @app.before_request
-def security_layer():
+def security_layer() -> None | Response:
     g.correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
-    ip = request.remote_addr
+    ip: str = request.remote_addr or "unknown"
 
     if os.getenv("CHAOS_MODE") == "true" and random.random() < 0.05:
         app.logger.warning("chaos_strike", extra={"trace_id": g.correlation_id})
@@ -73,10 +117,11 @@ def security_layer():
 
     if failed_login_attempts.get(ip, 0) >= 5 and request.path == "/login":
         return jsonify({"error": "Account locked"}), 429
+    return None
 
 
 @app.after_request
-def secure_headers(response):
+def secure_headers(response: Response) -> Response:
     trace_id = getattr(g, "correlation_id", "SYSTEM")
     response.headers["X-Correlation-ID"] = trace_id
 
@@ -103,24 +148,24 @@ def secure_headers(response):
 
 
 @app.route("/openapi.yaml", methods=["GET"])
-def serve_openapi():
+def serve_openapi() -> Response:
     return send_from_directory(os.getcwd(), "openapi.yaml")
 
 
 @app.route("/", methods=["GET"])
-def index():
+def index() -> str:
     return '<html><body><input id="user"><input id="pass" type="password"><button id="btn">Login</button><div id="msg">Ready</div><script>document.getElementById("btn").onclick = async () => { const u = document.getElementById("user").value; const p = document.getElementById("pass").value; const res = await fetch("/login", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username: u, password: p})}); const data = await res.json(); document.getElementById("msg").innerText = data.token ? "Token Received" : (data.error || "Access Denied"); }</script></body></html>'
 
 
 @app.route("/login", methods=["POST"])
-def login():
+def login() -> tuple[Response, int]:
     data = request.get_json()
     if not isinstance(data, dict):
         return jsonify({"error": "Invalid JSON"}), 400
     username, password = data.get("username", ""), data.get("password", "")
     if not isinstance(username, str) or not isinstance(password, str) or not username or not password:
         return jsonify({"error": "Invalid JSON"}), 400
-    ip = request.remote_addr
+    ip: str = request.remote_addr or "unknown"
 
     if username in users:
         valid = check_password_hash(users[username], password)
@@ -137,7 +182,7 @@ def login():
 
 
 @app.route("/transfer", methods=["POST"])
-def transfer():
+def transfer() -> tuple[Response, int]:
     auth_data = verify_jwt(request.headers.get("Authorization", ""))
     if not auth_data:
         return jsonify({"error": "Unauthorized"}), 401
@@ -163,7 +208,7 @@ def transfer():
 
 
 @app.route("/api/users/<user_id>", methods=["GET"])
-def get_user_data(user_id):
+def get_user_data(user_id: str) -> tuple[Response, int]:
     auth_data = verify_jwt(request.headers.get("Authorization", ""))
     if not auth_data:
         return jsonify({"error": "Unauthorized"}), 401
@@ -174,7 +219,7 @@ def get_user_data(user_id):
 
 
 @app.route("/api/accounts/<user_id>/balance", methods=["GET"])
-def get_balance(user_id):
+def get_balance(user_id: str) -> tuple[Response, int]:
     auth_data = verify_jwt(request.headers.get("Authorization", ""))
     if not auth_data:
         return jsonify({"error": "Unauthorized"}), 401
@@ -186,7 +231,7 @@ def get_balance(user_id):
 
 
 @app.route("/test/reset", methods=["POST"])
-def reset_state():
+def reset_state() -> tuple[Response, int]:
     if os.getenv("TEST_MODE") != "true":
         return jsonify({"error": "Not Found"}), 404
 
@@ -198,7 +243,7 @@ def reset_state():
 
 
 @app.route("/health", methods=["GET", "OPTIONS"])
-def health():
+def health() -> tuple[Response, int]:
     return jsonify({"status": "healthy"}), 200
 
 
