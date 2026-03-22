@@ -107,7 +107,7 @@ def verify_jwt(auth_header: str) -> dict[str, str] | None:
 
 
 @app.before_request
-def security_layer() -> None | Response:
+def security_layer() -> "tuple[Response, int] | None":
     g.correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
     ip: str = request.remote_addr or "unknown"
 
