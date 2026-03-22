@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          pip install awscli-local
+          pip install awscli-local bandit safety
           pip install -r requirements.txt
 
       - name: "Security Scan — Bandit"
