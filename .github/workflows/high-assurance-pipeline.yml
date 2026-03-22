@@ -156,7 +156,7 @@ jobs:
           kill %1 2>/dev/null || true
 
       - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ZAP-Security-Report-${{ github.run_number }}
@@ -164,7 +164,7 @@ jobs:
           retention-days: 30
 
       - name: Upload FDA Audit Bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Compliance-Artifacts-${{ github.run_number }}
