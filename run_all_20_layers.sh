@@ -38,6 +38,7 @@ PYTHONPATH=src pytest tests/ \
   --junitxml=audit_reports/test_results.xml \
   --cov=src \
   --cov-report=xml:coverage.xml \
+  --cov-report=term-missing \
   -q
 
 # 3. Reset State
