@@ -17,7 +17,6 @@ cyclonedx-bom
 pre-commit
 mypy
 allure-pytest
-prometheus-flask-instrumentator
 pip-audit
 pytest-forked
 opentelemetry-api
@@ -31,4 +30,3 @@ opentelemetry-api
 opentelemetry-sdk
 opentelemetry-instrumentation-flask
 opentelemetry-exporter-otlp-proto-grpc
-prometheus-flask-instrumentator

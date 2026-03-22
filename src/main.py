@@ -12,7 +12,6 @@ from botocore.exceptions import ClientError
 from flask import Flask, Response, g, jsonify, request, send_from_directory
 
 # ── OpenTelemetry ─────────────────────────────────────────────────────────────
-from prometheus_flask_instrumentator import Instrumentator
 from pythonjsonlogger import jsonlogger  # type: ignore[import-untyped]
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -33,7 +32,6 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 app = Flask(__name__)
-Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 db_lock = threading.Lock()
 processed_transactions: dict[str, float] = {}
