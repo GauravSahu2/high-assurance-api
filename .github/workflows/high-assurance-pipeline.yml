@@ -79,7 +79,7 @@ jobs:
 
       - name: "Supply Chain — Cosign keyless sign audit bundle"
         if: github.ref == 'refs/heads/main'
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
         with:
           cosign-release: 'v2.2.3'
 
@@ -112,7 +112,7 @@ jobs:
         # Setup: https://sonarcloud.io → import repo → copy token →
         # GitHub repo Settings → Secrets → Actions → SONAR_TOKEN
         if: always()
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@ba3875ecf642b2129de2b589510c81a8b53dbf4e  # master
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
           pip-audit -r requirements.txt --ignore-vuln PYSEC-2022-42969 --ignore-vuln CVE-2025-50181 --ignore-vuln CVE-2025-66418 --ignore-vuln CVE-2025-66471 --ignore-vuln CVE-2026-21441 || true
 
       - name: "SCA — Trivy filesystem scan"
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # master
         with:
           scan-type: 'fs'
           scan-ref: '.'

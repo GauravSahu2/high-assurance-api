@@ -80,7 +80,7 @@ def _load_secret(secret_name: str, fallback: str) -> str:
         return fallback
 
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8000,http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8000,http://localhost:3000").split(",")  # noqa: S104 — dev localhost only, production uses HTTPS via env var
 ADMIN_PASS_HASH = generate_password_hash(
     _load_secret("high-assurance-api/admin-password", os.getenv("ADMIN_PASSWORD", "password123"))
 )
@@ -116,7 +116,7 @@ def verify_jwt(auth_header: str) -> dict[str, str] | None:
         return None
 
 
-@app.route("/metrics")
+@app.route("/metrics", methods=["GET"])
 def metrics_endpoint() -> Response:
     """Expose Prometheus metrics for scraping."""
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
