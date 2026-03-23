@@ -7,8 +7,8 @@ mkdir -p "$BUNDLE_DIR"
 
 echo "📦 Packaging evidence for compliance..."
 
-[[[ -f audit_reports/test_results.xml ]] && cp audit_reports/test_results.xml "$BUNDLE_DIR/pytest_results.xml"
-[[[ -f logs/api.log ]] && cp logs/api.log "$BUNDLE_DIR/api.log"
+[[[[ -f audit_reports/test_results.xml ]] && cp audit_reports/test_results.xml "$BUNDLE_DIR/pytest_results.xml"
+[[[[ -f logs/api.log ]] && cp logs/api.log "$BUNDLE_DIR/api.log"
 
 echo "📋 Generating Software Bill of Materials (SBOM)..."
 # 🛡️ FIX: Removed --format flag as newer versions infer format from the .json extension

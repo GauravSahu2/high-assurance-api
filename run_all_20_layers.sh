@@ -21,7 +21,7 @@ for i in $(seq 1 30); do
         echo "✅ API is up (${i}s)"
         break
     fi
-    if [ $i -eq 30 ]; then
+    if [[ $i -eq 30 ]]; then
         echo "❌ API failed to start after 30s. Logs:"
         cat logs/api.log
         exit 1

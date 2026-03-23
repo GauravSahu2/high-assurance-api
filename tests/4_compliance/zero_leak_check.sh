@@ -5,7 +5,7 @@ echo "🔎 [Tier 4] Initiating PII Zero-Leak Scan on runtime logs..."
 
 LOG_FILE="logs/api.log"
 
-if [ ! -f "$LOG_FILE" ]; then
+if [[ ! -f "$LOG_FILE" ]]; then
     echo "⚠️  Log file not found at $LOG_FILE. Ensure the API is running."
     exit 1
 fi
