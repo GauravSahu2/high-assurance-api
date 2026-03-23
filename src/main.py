@@ -19,7 +19,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 try:
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # noqa: F401
 
-    _otlp_available = True
+    _otlp_available = True  # pragma: no cover
 except ImportError:  # pragma: no cover
     _otlp_available = False
 
