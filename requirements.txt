@@ -23,15 +23,19 @@ blinker==1.9.0
     # via flask
 boolean-py==5.0
     # via license-expression
-boto3==1.42.69
+boto3==1.42.74
     # via
     #   -r requirements.in
     #   moto
-botocore==1.42.69
+botocore==1.42.74
     # via
     #   boto3
     #   moto
     #   s3transfer
+cachecontrol[filecache]==0.14.4
+    # via
+    #   cachecontrol
+    #   pip-audit
 certifi==2026.2.25
     # via
     #   httpcore
@@ -56,13 +60,20 @@ cryptography==46.0.5
 cyclonedx-bom==7.2.2
     # via -r requirements.in
 cyclonedx-python-lib[validation]==11.6.0
-    # via cyclonedx-bom
+    # via
+    #   cyclonedx-bom
+    #   pip-audit
 defusedxml==0.7.1
     # via py-serializable
+detect-secrets==1.5.0
+    # via -r requirements.in
 distlib==0.4.0
     # via virtualenv
+execnet==2.1.2
+    # via pytest-xdist
 filelock==3.25.2
     # via
+    #   cachecontrol
     #   python-discovery
     #   virtualenv
 flask==3.1.3
@@ -73,8 +84,12 @@ flask-cors==6.0.2
     # via -r requirements.in
 fqdn==1.5.1
     # via jsonschema
+googleapis-common-protos==1.73.0
+    # via opentelemetry-exporter-otlp-proto-grpc
 graphql-core==3.2.8
     # via hypothesis-graphql
+grpcio==1.78.0
+    # via opentelemetry-exporter-otlp-proto-grpc
 h11==0.16.0
     # via httpcore
 harfile==0.4.0
@@ -101,6 +116,8 @@ idna==3.11
     #   httpx
     #   jsonschema
     #   requests
+importlib-metadata==8.7.1
+    # via opentelemetry-api
 iniconfig==2.3.0
     # via pytest
 isoduration==20.11.0
@@ -148,12 +165,53 @@ mdurl==0.1.2
     # via markdown-it-py
 moto[ec2,iam,s3,wafv2]==5.1.22
     # via -r requirements.in
+msgpack==1.1.2
+    # via cachecontrol
 mypy==1.19.1
     # via -r requirements.in
 mypy-extensions==1.1.0
     # via mypy
 nodeenv==1.10.0
     # via pre-commit
+opentelemetry-api==1.40.0
+    # via
+    #   -r requirements.in
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-instrumentation
+    #   opentelemetry-instrumentation-flask
+    #   opentelemetry-instrumentation-wsgi
+    #   opentelemetry-sdk
+    #   opentelemetry-semantic-conventions
+opentelemetry-exporter-otlp-proto-common==1.40.0
+    # via opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-exporter-otlp-proto-grpc==1.40.0
+    # via -r requirements.in
+opentelemetry-instrumentation==0.61b0
+    # via
+    #   opentelemetry-instrumentation-flask
+    #   opentelemetry-instrumentation-wsgi
+opentelemetry-instrumentation-flask==0.61b0
+    # via -r requirements.in
+opentelemetry-instrumentation-wsgi==0.61b0
+    # via opentelemetry-instrumentation-flask
+opentelemetry-proto==1.40.0
+    # via
+    #   opentelemetry-exporter-otlp-proto-common
+    #   opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-sdk==1.40.0
+    # via
+    #   -r requirements.in
+    #   opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-semantic-conventions==0.61b0
+    # via
+    #   opentelemetry-instrumentation
+    #   opentelemetry-instrumentation-flask
+    #   opentelemetry-instrumentation-wsgi
+    #   opentelemetry-sdk
+opentelemetry-util-http==0.61b0
+    # via
+    #   opentelemetry-instrumentation-flask
+    #   opentelemetry-instrumentation-wsgi
 packageurl-python==0.17.6
     # via
     #   cyclonedx-bom
@@ -161,14 +219,24 @@ packageurl-python==0.17.6
 packaging==26.0
     # via
     #   cyclonedx-bom
+    #   opentelemetry-instrumentation
+    #   opentelemetry-instrumentation-flask
+    #   pip-audit
     #   pip-requirements-parser
     #   pytest
 pathspec==1.0.4
     # via mypy
+pip-api==0.0.34
+    # via pip-audit
+pip-audit==2.10.0
+    # via -r requirements.in
 pip-requirements-parser==32.0.1
-    # via cyclonedx-bom
+    # via
+    #   cyclonedx-bom
+    #   pip-audit
 platformdirs==4.9.4
     # via
+    #   pip-audit
     #   python-discovery
     #   virtualenv
 pluggy==1.6.0
@@ -178,10 +246,12 @@ pluggy==1.6.0
     #   pytest-cov
 pre-commit==4.5.1
     # via -r requirements.in
-prometheus-client==0.24.1
-    # via -r requirements.in
-    # via -r requirements.in
-    # via -r requirements.in
+protobuf==6.33.6
+    # via
+    #   googleapis-common-protos
+    #   opentelemetry-proto
+py==1.11.0
+    # via pytest-forked
 py-partiql-parser==0.6.3
     # via moto
 py-serializable==2.1.0
@@ -204,10 +274,16 @@ pytest==9.0.2
     #   allure-pytest
     #   pytest-asyncio
     #   pytest-cov
+    #   pytest-forked
+    #   pytest-xdist
     #   schemathesis
 pytest-asyncio==1.3.0
     # via -r requirements.in
 pytest-cov==7.0.0
+    # via -r requirements.in
+pytest-forked==1.6.0
+    # via -r requirements.in
+pytest-xdist==3.8.0
     # via -r requirements.in
 python-dateutil==2.9.0.post0
     # via
@@ -220,6 +296,7 @@ python-json-logger==4.0.0
     # via -r requirements.in
 pyyaml==6.0.3
     # via
+    #   detect-secrets
     #   moto
     #   pre-commit
     #   responses
@@ -232,7 +309,10 @@ referencing==0.37.0
 requests==2.32.5
     # via
     #   -r requirements.in
+    #   cachecontrol
+    #   detect-secrets
     #   moto
+    #   pip-audit
     #   responses
     #   schemathesis
     #   starlette-testclient
@@ -245,7 +325,9 @@ rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
     # via jsonschema
 rich==14.3.3
-    # via schemathesis
+    # via
+    #   pip-audit
+    #   schemathesis
 rpds-py==0.30.0
     # via
     #   jsonschema
@@ -269,11 +351,20 @@ starlette-testclient==0.4.1
     # via schemathesis
 tenacity==9.1.4
     # via schemathesis
+tomli==2.4.0
+    # via pip-audit
+tomli-w==1.2.0
+    # via pip-audit
 typing-extensions==4.15.0
     # via
     #   anyio
     #   cyclonedx-python-lib
+    #   grpcio
     #   mypy
+    #   opentelemetry-api
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-sdk
+    #   opentelemetry-semantic-conventions
     #   pytest-asyncio
     #   referencing
     #   schemathesis
@@ -299,5 +390,9 @@ werkzeug==3.1.6
     #   flask-cors
     #   moto
     #   schemathesis
+wrapt==1.17.3
+    # via opentelemetry-instrumentation
 xmltodict==1.0.4
     # via moto
+zipp==3.23.0
+    # via importlib-metadata
