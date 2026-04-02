@@ -1,11 +1,11 @@
 """
 OPA / Conftest policy-as-code tests.
 Validates security invariants as Rego policies using OPA CLI.
-Falls back gracefully when OPA binary is not installed.
+Hard-fails if OPA binary is absent — SOC2 requirement, cannot be bypassed.
 """
 
 import json
-import os
+import shutil
 import subprocess
 
 import pytest
@@ -33,9 +33,23 @@ PROD_MANIFEST = {
 }
 
 
+def test_opa_binary_presence_is_mandatory():
+    """SOC2 Compliance: Policy-as-Code checks cannot be silently skipped."""
+    if not shutil.which("opa"):
+        pytest.fail(
+            "CRITICAL BLOCKER: OPA binary not found. "
+            "Policy-as-code validation is a strict SOC2 requirement."
+        )
+
+
 def _opa_available() -> bool:
     try:
-        return subprocess.run(["opa", "version"], capture_output=True, timeout=5).returncode == 0
+        return (
+            subprocess.run(
+                ["opa", "version"], capture_output=True, timeout=5
+            ).returncode
+            == 0
+        )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
 
@@ -91,32 +105,21 @@ def test_prod_manifest_denied_for_default_jwt_secret(tmp_path):
     assert "CORS" in denial_text
 
 
-def test_policy_files_exist_and_are_valid_rego():
-    """Policy files must exist, be non-empty, and contain valid Rego."""
-    for policy in ["policies/api_security.rego", "policies/docker_security.rego"]:
-        assert os.path.exists(policy), f"Missing policy file: {policy}"
-        with open(policy) as f:
-            content = f.read()
-        assert len(content) > 100, f"Policy file too small: {policy}"
-        assert "package" in content, f"Missing package declaration: {policy}"
-        assert "deny" in content or "allow" in content, f"Policy must define deny or allow rules: {policy}"
-
-
 def test_all_transfer_routes_require_auth():
     """Transfer, balance, and user-data routes must all require authentication."""
-    protected_paths = {r["path"] for r in API_MANIFEST["routes"] if r["auth_required"]}
-    must_be_protected = [
+    protected = {r["path"] for r in API_MANIFEST["routes"] if r["auth_required"]}
+    for path in [
         "/transfer",
         "/api/users/{user_id}",
         "/api/accounts/{user_id}/balance",
-    ]
-    for path in must_be_protected:
-        assert path in protected_paths, f"{path} must require authentication per security policy"
+    ]:
+        assert (
+            path in protected
+        ), f"{path} must require authentication per security policy"
 
 
 def test_public_endpoints_are_minimal():
     """Public endpoints must be limited to health, login, docs, and root."""
-    public_paths = {r["path"] for r in API_MANIFEST["routes"] if not r["auth_required"]}
-    allowed_public = {"/health", "/login", "/openapi.yaml", "/"}
-    unexpected = public_paths - allowed_public
+    public = {r["path"] for r in API_MANIFEST["routes"] if not r["auth_required"]}
+    unexpected = public - {"/health", "/login", "/openapi.yaml", "/"}
     assert not unexpected, f"Unexpected public endpoints: {unexpected}"

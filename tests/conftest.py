@@ -10,14 +10,14 @@ os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-12345")
 from main import app as flask_app  # noqa: E402
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def client():
     flask_app.config["TESTING"] = True
     with flask_app.test_client() as c:
         yield c
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def token_factory():
     secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
 
@@ -33,7 +33,7 @@ def token_factory():
     return make
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def auth_header(token_factory):
     token = token_factory("admin", "admin")
     return {"Authorization": f"Bearer {token}"}
@@ -41,17 +41,11 @@ def auth_header(token_factory):
 
 @pytest.fixture(autouse=True)
 def reset_state_between_tests():
-    """Resets module-level state before and after every test.
-    Uses runtime import so mutmut trampoline and normal pytest
-    both reset the same live dict objects."""
+    """Resets Redis state before and after every test."""
     import main as _main
 
-    _main.failed_login_attempts.clear()
-    _main.processed_transactions.clear()
-    _main.accounts["user_1"] = 1000.0
-    _main.accounts["user_2"] = 500.0
+    _main.redis_client.flushdb()
+    _main.init_db()
     yield
-    _main.failed_login_attempts.clear()
-    _main.processed_transactions.clear()
-    _main.accounts["user_1"] = 1000.0
-    _main.accounts["user_2"] = 500.0
+    _main.redis_client.flushdb()
+    _main.init_db()

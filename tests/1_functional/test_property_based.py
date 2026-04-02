@@ -1,11 +1,18 @@
 import uuid
 
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 
-@given(amount=st.one_of(st.floats(allow_nan=False, allow_infinity=False), st.integers(), st.text(), st.none()))
-@settings(max_examples=100)
+@given(
+    amount=st.one_of(
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.integers(),
+        st.text(),
+        st.none(),
+    )
+)
+@settings(max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_fuzz_transfer_endpoint(client, auth_header, amount):
     headers = {**auth_header, "X-Idempotency-Key": str(uuid.uuid4())}
     payload = {"amount": amount}

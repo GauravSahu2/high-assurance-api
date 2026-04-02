@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  test:
+    build: .
+    environment:
+      - TEST_MODE=true
+      - JWT_SECRET=super-secure-dev-secret-key-12345
+      - PYTHONPATH=src
+    command: >
+      sh -c "pip install -r requirements.txt -q &&
+             pytest -p no:warnings --cov=src -rs"
+    volumes:
+      - .:/app
+    working_dir: /app

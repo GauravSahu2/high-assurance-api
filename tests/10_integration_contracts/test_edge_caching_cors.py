@@ -1,39 +1,23 @@
-from unittest.mock import Mock
+import pytest
+from main import ALLOWED_ORIGINS
+from main import app as flask_app
 
 
-def mock_cloud_gateway_response(origin_header):
-    # Simulating AWS API Gateway / CloudFront Edge Logic
-    response = Mock()
-    response.headers = {
-        # Edge MUST explicitly instruct browsers NOT to cache financial data
-        "Cache-Control": "no-store, no-cache, must-revalidate, private",
-        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-    }
-
-    # Strict CORS validation
-    allowed_origin = "https://app.highassurance.dev"
-    if origin_header == allowed_origin:
-        response.headers["Access-Control-Allow-Origin"] = allowed_origin
-    else:
-        # Reject unauthorized origins
-        response.headers["Access-Control-Allow-Origin"] = "null"
-
-    return response
+@pytest.fixture
+def client():
+    flask_app.config["TESTING"] = True
+    with flask_app.test_client() as c:
+        yield c
 
 
-def test_cors_and_edge_caching():
-    # 1. Test CORS Rejection
-    malicious_origin = "https://evil-hacker-site.com"
-    hacker_response = mock_cloud_gateway_response(malicious_origin)
+def test_cors_allowed_origin_gets_header(client):
+    # FIXED: Extract the first string from the ALLOWED_ORIGINS array
+    real_origin = ALLOWED_ORIGINS[0]
+    res = client.options("/health", headers={"Origin": real_origin})
+    assert "Access-Control-Allow-Origin" in res.headers
+    assert res.headers["Access-Control-Allow-Origin"] == real_origin
 
-    assert hacker_response.headers["Access-Control-Allow-Origin"] != malicious_origin, "CRITICAL: CORS leak!"
 
-    # 2. Test Edge Caching Rules for Sensitive Endpoints
-    valid_origin = "https://app.highassurance.dev"
-    safe_response = mock_cloud_gateway_response(valid_origin)
-
-    cache_header = safe_response.headers.get("Cache-Control", "")
-    assert "no-store" in cache_header, "CRITICAL: Edge server is caching sensitive financial data!"
-    assert "private" in cache_header, "CRITICAL: Edge server missing 'private' cache directive!"
-
-    print("\n[SUCCESS] Edge Security verified. Strict CORS and Zero-Caching enforced.")
+def test_cors_rejects_malicious_origin(client):
+    res = client.options("/health", headers={"Origin": "https://evil-hacker.com"})
+    assert "Access-Control-Allow-Origin" not in res.headers

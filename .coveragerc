@@ -1,8 +1,2 @@
-[coverage:run]
-omit =
-    */site-packages/*
-
-[coverage:report]
-exclude_lines =
-    pragma: no cover
-    if __name__ == .__main__.:
+[run]
+source = src

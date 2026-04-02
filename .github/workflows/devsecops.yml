@@ -1,0 +1,48 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+  pull_request:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  TEST_MODE: "true"
+
+jobs:
+  security-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Start API
+      run: |
+        export PYTHONPATH=src
+        python src/main.py &
+        sleep 10
+
+    - name: Health Check
+      run: curl -f http://localhost:5000/health
+
+    - name: Run 20-Tier Pipeline
+      run: |
+        chmod +x run_all_20_layers.sh
+        ./run_all_20_layers.sh
+
+    - name: Upload ZAP Report
+      uses: actions/upload-artifact@v4
+      # Always attempt upload — ZAP step uses || true so it won't block,
+      # but the report may not exist if Docker is unavailable.
+      if: always()
+      continue-on-error: true
+      with:
+        name: zap-report
+        path: zap_report.html

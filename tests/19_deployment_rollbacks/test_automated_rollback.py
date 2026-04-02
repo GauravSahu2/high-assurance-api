@@ -1,26 +1,19 @@
-def simulate_blue_green_deployment(new_version_health_status):
-    # The router starts by pointing 100% of traffic to the old, stable version
-    traffic_routing = {"v1_stable": 100, "v2_new": 0}
+import os
 
-    # Deployment starts: Shift 10% of traffic to the new version (Canary Release)
-    traffic_routing = {"v1_stable": 90, "v2_new": 10}
-
-    # Evaluate the health of the new version
-    if new_version_health_status == "500_INTERNAL_SERVER_ERROR":
-        # ATOMIC RULE: If the canary throws 500s, instantly roll back to v1!
-        traffic_routing = {"v1_stable": 100, "v2_new": 0}
-        return "ROLLED_BACK", traffic_routing
-
-    # If healthy, shift 100% of traffic
-    traffic_routing = {"v1_stable": 0, "v2_new": 100}
-    return "DEPLOY_SUCCESS", traffic_routing
+from main import app as flask_app
 
 
-def test_automated_rollback():
-    # Simulate a toxic deployment that crashes
-    status, final_routing = simulate_blue_green_deployment("500_INTERNAL_SERVER_ERROR")
+def test_health_endpoint_triggers_rollback_flag_on_degradation():
+    """Verifies that a degraded API correctly signals load balancers to roll back traffic."""
+    flask_app.config["TESTING"] = True
+    with flask_app.test_client() as c:
+        # Inject Chaos to simulate a bad deployment
+        os.environ["CHAOS_MODE"] = "true"
+        from unittest.mock import patch
 
-    # THE ASSERTION: The system must have reverted 100% of traffic back to the stable version
-    assert status == "ROLLED_BACK"
-    assert final_routing["v1_stable"] == 100, "CRITICAL: System left users stranded on a broken deployment!"
-    print("\n[SUCCESS] Automated Rollback verified. Toxic deployments are instantly reverted.")
+        with patch("random.random", return_value=0.0):  # Force the 503
+            res = c.get("/health")
+
+        assert res.status_code == 503
+        assert res.get_json()["status"] == "chaos"
+        del os.environ["CHAOS_MODE"]

@@ -1,0 +1,97 @@
+name: 20-Tier Validation Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install OPA
+        run: |
+          wget -q -O /tmp/opa https://openpolicyagent.org/downloads/v0.55.0/opa_linux_amd64_static
+          chmod +x /tmp/opa
+          sudo mv /tmp/opa /usr/local/bin/opa
+
+      - name: Run pytest with coverage
+        env:
+          TEST_MODE: "true"
+          JWT_SECRET: "super-secure-dev-secret-key-12345"  # pragma: allowlist secret
+          PYTHONPATH: src
+        run: pytest -p no:warnings --cov=src -rs
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: .coverage
+
+      - name: Start API for DAST
+        env:
+          REDIS_URL: "redis://localhost:6379/0"
+          JWT_SECRET: "super-secure-dev-secret-key-12345"  # pragma: allowlist secret
+          PYTHONPATH: src
+        run: |
+          gunicorn --threads 4 -b 0.0.0.0:5000 main:app &
+          sleep 5
+          curl -sf http://localhost:5000/health
+
+      - name: Run Schemathesis DAST
+        run: |
+          VIP_TOKEN=$(curl -s -X POST http://localhost:5000/login \
+            -H "Content-Type: application/json" \
+            -d '{"username":"admin","password":"password123"}' \  # pragma: allowlist secret
+            | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+          schemathesis run openapi.yaml \
+            --base-url http://localhost:5000 \
+            -c not_a_server_error \
+            -H "Authorization: Bearer $VIP_TOKEN"
+
+      - name: Run OWASP ZAP
+        run: |
+          docker run --network host --rm \
+            -v "$(pwd)":/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py -t openapi.yaml -f openapi -I -r zap_report.html
+
+      - name: Upload ZAP report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: zap_report.html
+
+      - name: Run benchmark
+        env:
+          TEST_MODE: "true"
+          JWT_SECRET: "super-secure-dev-secret-key-12345"  # pragma: allowlist secret
+          PYTHONPATH: src
+        run: pytest -p no:warnings -o addopts="" --benchmark-only || true

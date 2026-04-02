@@ -1,19 +1,19 @@
-# Multi-stage build for minimal attack surface
-FROM python:3.12-slim AS builder
-WORKDIR /app
-COPY requirements.in .
-RUN pip install pip-tools && pip-compile requirements.in -o requirements.txt
-RUN pip install --prefix=/install -r requirements.txt
+FROM python:3.12-slim
 
-FROM python:3.12-slim AS runtime
 WORKDIR /app
-COPY --from=builder /install /usr/local
-COPY src/ src/
-COPY openapi.yaml openapi.yaml
-EXPOSE 8000
 
-# Run as unprivileged user for security
-RUN adduser --disabled-password --no-create-home appuser && chown -R appuser /app
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY openapi.yaml .
+COPY policies/ ./policies/
+
+RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
 USER appuser
 
-CMD ["python", "src/main.py"]
+ENV PYTHONPATH=src
+EXPOSE 5000
+CMD ["gunicorn", "--threads", "4", "--workers", "2", "-b", "0.0.0.0:5000", "main:app"]
