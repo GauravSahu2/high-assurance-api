@@ -6,13 +6,15 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/gaurav/high-assurance-api.git
+    repoURL: https://github.com/gaurav/api-gitops-manifests.git
     targetRevision: HEAD
-    path: k8s
+    path: .
   destination:
     server: https://kubernetes.default.svc
-    namespace: hsa-prod
+    namespace: production
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

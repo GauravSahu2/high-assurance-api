@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: high-assurance-api-svc
-  namespace: production
+  name: hsa-api-service
+  namespace: hsa-prod
 spec:
-  type: ClusterIP
   selector:
-    app: high-assurance-api
+    app: hsa-api
   ports:
     - protocol: TCP
       port: 80
       targetPort: 5000
+  type: LoadBalancer

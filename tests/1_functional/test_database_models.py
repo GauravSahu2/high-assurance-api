@@ -26,7 +26,7 @@ def test_database_models_and_outbox():
 
     # 4. Test Transactional Outbox Event Model
     outbox = OutboxEvent(
-        event_type="FUNDS_TRANSFERRED", payload={"from": "user_1", "amount": 100.0}
+        event_type="FUNDS_TRANSFERRED", payload={"from": "user_1", "amount": 100.0, "to_user": "user_2"}
     )
     db.add(outbox)
 

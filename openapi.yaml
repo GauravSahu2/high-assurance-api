@@ -2,16 +2,19 @@ openapi: 3.0.3
 info:
   title: High-Assurance API
   version: 1.0.0
+  description: Multi-route API with Security, Outbox Logic, and Full Testing Suite.
+
 servers:
   - url: http://localhost:5000
+    description: Local Development API
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-security:
-  - bearerAuth: []
+
 paths:
   /health:
     get:
@@ -19,103 +22,87 @@ paths:
       security: []
       responses:
         '200':
-          description: OK — API and Redis are healthy
+          description: OK
         '503':
-          description: Service degraded — Redis unreachable
+          description: Service degraded
+
   /login:
     post:
-      summary: Login
+      summary: User Login (Get Token)
       security: []
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
               type: object
-              required:
-                - username
-                - password
               properties:
                 username:
                   type: string
-                  minLength: 1
-                  example: "admin"
                 password:
                   type: string
-                  minLength: 1
-                  example: "password123"
       responses:
         '200':
-          description: Token generated
+          description: JWT Issued
+        '400':
+          description: Bad request
+        '401':
+          description: Invalid credentials
+        '429':
+          description: Rate limited
+
+  /upload-dataset:
+    post:
+      summary: Async Dataset Upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Accepted for processing
         '400':
           description: Bad request
         '401':
           description: Unauthorized
-        '429':
-          description: Rate limited
+        '422':
+          description: Validation failed
+
   /transfer:
     post:
-      summary: Transfer funds
+      summary: Secure Fund Transfer (Outbox Pattern)
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - amount
+              required: [to_user, amount]
               properties:
+                to_user:
+                  type: string
+                  example: "senior_engineer"
                 amount:
                   type: number
-                  minimum: 0.000001
-                  maximum: 1000.0
-                  example: 100.50
+                  example: 5000
       responses:
-        '200':
-          description: Transfer successful
+        '201':
+          description: Transaction Recorded in Outbox
         '400':
-          description: Invalid request
+          description: Bad request
         '401':
           description: Unauthorized
         '404':
           description: Account not found
         '409':
           description: Duplicate transaction
-  /api/users/{user_id}:
-    get:
-      summary: Get user role
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "user_1"
-      responses:
-        '200':
-          description: User data
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Not found
-  /api/accounts/{user_id}/balance:
-    get:
-      summary: Get account balance
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "user_1"
-      responses:
-        '200':
-          description: Balance data
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Not found
+        '422':
+          description: Validation failed

@@ -40,6 +40,26 @@ jobs:
           chmod +x /tmp/opa
           sudo mv /tmp/opa /usr/local/bin/opa
 
+
+      - name: Run Gitleaks (secret scanning)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
+
+      - name: Run Trivy (dependency CVE scan)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: requirements.txt
+          severity: HIGH,CRITICAL
+          exit-code: 1
+
+      - name: Run Semgrep (SAST)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: .semgrep/rules.yaml
+
       - name: Run pytest with coverage
         env:
           TEST_MODE: "true"

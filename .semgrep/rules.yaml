@@ -1,0 +1,57 @@
+rules:
+  - id: no-pickle-load
+    patterns:
+      - pattern: pickle.load(...)
+      - pattern: pickle.loads(...)
+      - pattern: cPickle.load(...)
+    message: |
+      Unsafe deserialization: pickle.load() can execute arbitrary code when
+      loading attacker-controlled data. Use json.loads() or safetensors instead.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+      owasp: "A8:2017-Insecure Deserialization"
+
+  - id: no-yaml-load-unsafe
+    patterns:
+      - pattern: yaml.load($DATA)
+      - pattern: yaml.load($DATA, ...)
+    message: |
+      yaml.load() with default Loader can execute arbitrary Python via
+      !!python/object tags. Use yaml.safe_load() instead.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-502"
+
+  - id: no-eval
+    pattern: eval(...)
+    message: "eval() executes arbitrary code. Refactor to remove dynamic code execution."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-95"
+
+  - id: no-exec
+    pattern: exec(...)
+    message: "exec() executes arbitrary code. Refactor to remove dynamic code execution."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-95"
+
+  - id: no-subprocess-shell-true
+    pattern: subprocess.run(..., shell=True, ...)
+    message: |
+      shell=True passes the command to the shell interpreter and enables
+      shell injection. Pass a list of arguments instead.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-78"

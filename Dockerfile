@@ -9,6 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 COPY openapi.yaml .
+COPY alembic.ini .
+COPY migrations/ ./migrations/
 COPY policies/ ./policies/
 
 RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app

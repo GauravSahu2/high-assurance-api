@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: block-aws-metadata
+  namespace: high-assurance-api
+spec:
+  podSelector: {} # Applies to ALL pods in this namespace
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 169.254.169.254/32 # CRITICAL: Drops all traffic to AWS/Azure Metadata Service

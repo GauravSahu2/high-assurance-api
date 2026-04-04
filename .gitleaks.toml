@@ -1,0 +1,10 @@
+[allowlist]
+description = "Ignore virtual environments and build artifacts"
+paths = [
+    "venv/",
+    "hsa-reports/",
+    ".pytest_cache/",
+    "__pycache__/",
+    ".trivycache/",
+    "server.log"
+]

@@ -10,7 +10,7 @@ def test_transfer_succeeds(client):
     token = make_token(client)
     res = client.post(
         "/transfer",
-        json={"amount": 100.0},
+        json={"amount": 100.0, "to_user": "user_2"},
         headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "key-001"},
     )
     assert res.status_code == 200
@@ -21,7 +21,7 @@ def test_transfer_rejects_above_maximum(client):
     token = make_token(client)
     res = client.post(
         "/transfer",
-        json={"amount": 1000.01},
+        json={"amount": 1000.01, "to_user": "user_2"},
         headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "key-002"},
     )
     assert res.status_code == 400
@@ -30,8 +30,8 @@ def test_transfer_rejects_above_maximum(client):
 def test_transfer_duplicate_idempotency_key(client):
     token = make_token(client)
     headers = {"Authorization": f"Bearer {token}", "X-Idempotency-Key": "key-003"}
-    client.post("/transfer", json={"amount": 1.0}, headers=headers)
-    res = client.post("/transfer", json={"amount": 1.0}, headers=headers)
+    client.post("/transfer", json={"amount": 1.0, "to_user": "user_2"}, headers=headers)
+    res = client.post("/transfer", json={"amount": 1.0, "to_user": "user_2"}, headers=headers)
     assert res.status_code == 409
 
 
@@ -76,7 +76,7 @@ def test_jwt_strict_time_boundaries(client):
 
     # 🔪 Kill Mutants 11, 12, 16, 18, 21, 27
     time_difference = payload["exp"] - payload["iat"]
-    assert time_difference == 3600, f"Mutant survived! Expected 3600s, got {time_difference}s"
+    assert time_difference == 900, f"Mutant survived! Expected 900s, got {time_difference}s"
 
 
 def test_jwt_iat_is_utc(client):
@@ -101,7 +101,7 @@ def test_jwt_encode_explicit_algorithm():
 
     from main import generate_jwt
 
-    with patch("main.jwt.encode") as mock_encode:
+    with patch("security.jwt.encode") as mock_encode:
         generate_jwt("admin")
         _, kwargs = mock_encode.call_args
         assert kwargs.get("algorithm") == "HS256", "Mutant survived: algorithm parameter was stripped!"
@@ -157,8 +157,8 @@ def test_jwt_absolute_time_strictness():
         secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
         payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
 
-        # 3. 🔪 Kill Mutant 16 (Strict 3600s Delta)
-        assert payload["exp"] - payload["iat"] == 3600, "Time Delta Mutant survived!"
+        # 3. 🔪 Kill Mutant 16 (Strict 900s Delta)
+        assert payload["exp"] - payload["iat"] == 900, "Time Delta Mutant survived!"
 
         # 4. 🔪 Kill Mutant 21 (Strict UTC Validation)
         now_utc = datetime.now(UTC).timestamp()

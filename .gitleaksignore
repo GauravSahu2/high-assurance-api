@@ -1,4 +1,0 @@
-# .secrets.baseline is a detect-secrets file containing HASHED secrets, not real ones.
-# It is intentionally committed as a security baseline. gitleaks flags the
-# "hashed_secret" key names as generic-api-key — these are SHA256 hashes, not secrets.
-.secrets.baseline:generic-api-key
