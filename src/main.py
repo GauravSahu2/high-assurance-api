@@ -304,4 +304,5 @@ def not_found(_e): return jsonify({"error": "not found"}), 404
 def method_not_allowed(e):  # pragma: no cover
     return jsonify({"error": "method not allowed"}), 405
 
-if __name__ == "__main__": app.run(host="0.0.0.0", port=8000)  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
+    app.run(host="127.0.0.1", port=8000)  # nosemgrep: avoid_app_run_with_bad_host

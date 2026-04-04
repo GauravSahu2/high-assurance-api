@@ -71,3 +71,4 @@ run_inner_loop.sh
 swagrrun.sh
 server.log
 .trivycache/
+.trivycache/
