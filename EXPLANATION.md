@@ -58,8 +58,9 @@ This is the project's defining innovation. Every code change passes through **20
 | 20 | **Disaster Recovery** | Redis/DB failure isolation and recovery |
 | 21 | **Secrets Management** | AWS Secrets Manager integration (moto) |
 | 22 | **Policy-as-Code** | OPA/Rego policy enforcement |
-| 23 | **Secrets Scanning** | Gitleaks + Trivy CVE scanning |
-| 24 | **Mutation Testing** | Mutmut configuration for core logic validation |
+| 23 | **Infrastructure** | Checkov 100% security scan completion (11 fixed, 2 suppressed) |
+| 24 | **Secrets Scanning** | Gitleaks + Trivy CVE scanning |
+| 25 | **Mutation Testing** | Mutmut configuration for core logic validation |
 
 ### How to Run It (Locally)
 
@@ -153,6 +154,7 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 | **Security Engineering** | SSRF protection, timing attack resistance, JWT revocation, BOLA, CSV injection defense |
 | **Testing Mastery** | 288 tests, 20 tiers, property-based fuzzing, DAST, mutation testing, 100% coverage |
 | **DevSecOps** | 9 GitHub Actions pipelines, Gitleaks, Trivy, ZAP, OPA |
+| **Infra Security** | 100/100 Checkov score, rootless containers, read-only FS, NetPol |
 | **Compliance** | FDA, SOC 2, PCI DSS, GDPR mapped to specific test assertions |
 | **Observability** | OpenTelemetry + Prometheus SLOs + Grafana dashboards + structured logging |
 | **Code Quality** | Type hints, docstrings, Flask Factory Pattern, clean architecture |

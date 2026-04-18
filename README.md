@@ -1,6 +1,6 @@
 # 🛡️ High-Assurance API — 20-Tier Quality Architecture
 
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-20%20Tiers%20Passing-success?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/GauravSahu2/high-assurance-api/actions) [![Tests](https://img.shields.io/badge/Tests-288%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#) [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](#) [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](#)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-20%20Tiers%20Passing-success?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/GauravSahu2/high-assurance-api/actions) [![Tests](https://img.shields.io/badge/Tests-288%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Infrastructure](https://img.shields.io/badge/Infrastructure-100%2F100-success?style=for-the-badge&logo=checkov&logoColor=white)](#) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#) [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](#)
 
 A property-tested, compliance-grade financial API platform with **288 automated tests**, **100% code coverage**, and a perfect **100/100 Architecture Score**. Designed for strict regulatory environments (Fintech, Healthcare, Banking) — producing cryptographically signed, timestamped FDA-grade audit bundles.
 
@@ -97,8 +97,8 @@ Three phases guarantee correctness, security, and operational resilience:
 | 20 | **Disaster Recovery** | Backup integrity, RTO/RPO |
 | 21 | **Secrets Mgmt** | AWS Secrets Manager (moto) |
 | 22 | **Policy-as-Code** | OPA/Rego policy enforcement |
-| 23 | **Secret Scanning** | Gitleaks + Trivy CVEs |
-| 24 | **Mutation Testing** | Mutmut coverage validation |
+| 24 | **Infrastructure** | Checkov 100% score (13 alerts resolved) |
+| 25 | **Mutation Testing** | Mutmut coverage validation |
 
 ---
 
