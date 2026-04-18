@@ -9,8 +9,6 @@ Validates:
   • Breaking changes are detectable via contract testing
   • API root provides service metadata
 """
-import pytest
-from main import app as flask_app
 
 
 class TestAPIContractStability:

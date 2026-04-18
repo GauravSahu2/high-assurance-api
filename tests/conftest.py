@@ -1,21 +1,24 @@
 import os
 import uuid
 from datetime import UTC, datetime, timedelta
+
 import jwt
 import pytest
-from hypothesis import settings, HealthCheck
+from hypothesis import HealthCheck, settings
 
 os.environ.setdefault("TEST_MODE", "true")
 os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
-
-from main import app as flask_app
-import main as _main
 
 # ── Suppress OTel teardown noise ──────────────────────────────────────────────
 # The ConsoleSpanExporter writes to stdout which is closed during pytest
 # teardown, causing a harmless but noisy ValueError. Shut it down cleanly.
 import atexit
+
 from opentelemetry import trace as _otel_trace
+
+import main as _main
+from main import app as flask_app
+
 
 def _shutdown_otel():
     provider = _otel_trace.get_tracer_provider()

@@ -14,12 +14,9 @@ Validates:
 import os
 import time
 
-import pytest
-from main import app as flask_app, redis_client, init_db
 from database import SessionLocal
+from main import init_db
 from models import Account
-
-
 
 
 class TestRecoveryPointObjective:
@@ -28,6 +25,7 @@ class TestRecoveryPointObjective:
     def test_database_uses_transactions(self):
         """RPO=0: All writes must be transactional (no partial writes)."""
         import inspect
+
         from main import transfer
         source = inspect.getsource(transfer)
         assert "db.commit()" in source, "Transfers must use explicit commits"
@@ -36,6 +34,7 @@ class TestRecoveryPointObjective:
     def test_outbox_pattern_ensures_no_lost_events(self):
         """RPO=0: Events are written in the same transaction as data changes."""
         import inspect
+
         from main import transfer
         source = inspect.getsource(transfer)
         # OutboxEvent is added BEFORE commit — same transaction

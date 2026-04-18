@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import Column, DateTime, Integer, JSON, Numeric, String
+from sqlalchemy import JSON, Column, DateTime, Integer, Numeric, String
 
 from database import Base
 

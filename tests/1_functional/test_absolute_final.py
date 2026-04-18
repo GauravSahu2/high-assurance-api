@@ -1,7 +1,8 @@
-import pytest
-from unittest.mock import patch
-import redis
 import importlib
+from unittest.mock import patch
+
+import redis
+
 import main
 import security
 

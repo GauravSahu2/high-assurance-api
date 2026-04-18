@@ -11,9 +11,6 @@ Validates:
   • JWT secret has sufficient entropy
 """
 import os
-import re
-
-import pytest
 
 
 class TestEncryptionAtRestConfiguration:
@@ -32,6 +29,7 @@ class TestEncryptionAtRestConfiguration:
     def test_secrets_loaded_from_manager_not_env(self):
         """PCI 3.4: Secrets must come from a vault, not plaintext env vars."""
         import inspect
+
         from main import _load_secret
         source = inspect.getsource(_load_secret)
         assert "secretsmanager" in source, \

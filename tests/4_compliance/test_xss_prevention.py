@@ -9,10 +9,7 @@ Validates:
   • CSP header blocks inline script execution
   • Error messages don't include raw user input
 """
-import json
 
-import pytest
-from main import app as flask_app, redis_client
 
 
 

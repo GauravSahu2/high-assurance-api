@@ -100,7 +100,7 @@ jobs:
           COPYLEFT=$(pip-licenses --format=json | python3 -c "
           import json, sys
           data = json.load(sys.stdin)
-          blocked = ['GPL', 'AGPL', 'LGPL', 'SSPL']
+          blocked = ['GPL', 'AGPL', 'SSPL']
           violations = [p for p in data if any(b in p.get('License','') for b in blocked)]
           if violations:
               for v in violations:

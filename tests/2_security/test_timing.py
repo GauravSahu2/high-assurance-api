@@ -1,6 +1,7 @@
 import time
 
 import pytest
+
 from main import app as flask_app
 from main import redis_client
 

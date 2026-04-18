@@ -1,11 +1,8 @@
-import pytest
-from unittest.mock import patch
-import redis
-import fakeredis
-import jwt
-import uuid
 import importlib
-import sqlalchemy
+from unittest.mock import patch
+
+import redis
+
 import main
 
 

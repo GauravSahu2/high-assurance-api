@@ -1,6 +1,7 @@
-import pytest
+from unittest.mock import patch
+
 import redis
-from unittest.mock import patch, MagicMock
+
 
 def test_global_redis_error_handler(client):
     import fakeredis

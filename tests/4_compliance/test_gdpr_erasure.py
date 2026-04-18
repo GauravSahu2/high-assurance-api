@@ -1,5 +1,5 @@
 from __future__ import annotations
-import pytest
+
 
 def test_gdpr_erasure_endpoint_admin(client, token_factory):
     """Admin can delete any user."""

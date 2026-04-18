@@ -2,6 +2,7 @@ import inspect
 from unittest.mock import patch
 
 import pytest
+
 from main import app, redis_client, verify_jwt
 
 

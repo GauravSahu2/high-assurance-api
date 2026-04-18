@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 
-
 # ── Simulation Layer (retained for educational value) ─────────────────────────
 
 def verify_deployment_authorization(modified_files, approvers):

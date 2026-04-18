@@ -8,9 +8,7 @@ Validates:
   • Database URLs don't point to unexpected regions
   • Environment variables for cloud regions are documented
 """
-import os
 
-import pytest
 
 
 class TestDataResidency:
@@ -19,6 +17,7 @@ class TestDataResidency:
     def test_aws_region_is_configurable(self):
         """Data sovereignty: Cloud region must not be silently hardcoded."""
         import inspect
+
         from main import _load_secret
         source = inspect.getsource(_load_secret)
         assert "AWS_DEFAULT_REGION" in source or "region_name" in source, \
@@ -27,6 +26,7 @@ class TestDataResidency:
     def test_aws_region_has_env_override(self):
         """GDPR Art.44: Region must be overridable via environment."""
         import inspect
+
         from main import _load_secret
         source = inspect.getsource(_load_secret)
         # The code should read region from env var, not hardcode it

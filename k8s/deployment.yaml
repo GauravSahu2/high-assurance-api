@@ -31,7 +31,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: api
-          image: high-assurance-api:latest
+          image: ghcr.io/GauravSahu2/high-assurance-api:latest
           ports:
             - containerPort: 5000
               protocol: TCP

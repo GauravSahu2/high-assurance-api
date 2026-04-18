@@ -11,12 +11,8 @@ Validates:
   • Hash rounds are appropriate for the environment
 """
 import os
-import time
 
-import pytest
-from main import app as flask_app, redis_client, USERS, DUMMY_HASH, _vp, _hp
-
-
+from main import DUMMY_HASH, USERS, _hp, _vp
 
 
 class TestPasswordHashing:

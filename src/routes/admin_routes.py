@@ -13,7 +13,7 @@ import os
 from flask import Blueprint, jsonify, request
 
 from auth import USERS, extract_bearer_token, verify_jwt
-from database import SessionLocal, get_db
+from database import get_db
 from models import Account, IdempotencyKey, OutboxEvent
 from routes.transfer_routes import purge_expired_idempotency_keys
 

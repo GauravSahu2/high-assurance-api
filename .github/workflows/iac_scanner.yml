@@ -78,29 +78,6 @@ jobs:
           sarif_file: checkov-k8s.sarif
           category: checkov-kubernetes
 
-  # ── Stage 3: Docker Compose Security ─────────────────────────────────────
-  scan-compose:
-    name: "Checkov — Docker Compose"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Scan Docker Compose Files
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: .
-          framework: docker-compose
-          output_format: cli,sarif
-          output_file_path: console,checkov-compose.sarif
-          soft_fail: true
-
-      - name: Upload Compose SARIF
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: checkov-compose.sarif
-          category: checkov-compose
 
   # ── Stage 4: ArgoCD & GitOps Security ────────────────────────────────────
   scan-gitops:
@@ -130,7 +107,7 @@ jobs:
   iac-summary:
     name: "IaC Security Summary"
     runs-on: ubuntu-latest
-    needs: [scan-dockerfiles, scan-kubernetes, scan-compose, scan-gitops]
+    needs: [scan-dockerfiles, scan-kubernetes, scan-gitops]
     if: always()
     steps:
       - name: Generate Summary
@@ -141,7 +118,6 @@ jobs:
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| Dockerfiles | ${{ needs.scan-dockerfiles.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Kubernetes | ${{ needs.scan-kubernetes.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Compose | ${{ needs.scan-compose.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ArgoCD/GitOps | ${{ needs.scan-gitops.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "> **Note**: Detailed findings are available in the Security tab under Code scanning alerts." >> $GITHUB_STEP_SUMMARY

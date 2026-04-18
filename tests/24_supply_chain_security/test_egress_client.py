@@ -3,9 +3,11 @@ Tests for the SSRF-safe egress client.
 Proves that metadata endpoints and private ranges are unreachable.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from egress_client import safe_get, SSRFError
+
+from egress_client import SSRFError, safe_get
 
 
 def test_blocks_aws_metadata_endpoint():

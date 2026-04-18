@@ -1,7 +1,9 @@
-from worker import process_outbox
+from unittest.mock import patch
+
 from database import get_db
 from models import OutboxEvent
-from unittest.mock import patch
+from worker import process_outbox
+
 
 def test_worker_processes_and_deletes_events():
     db = next(get_db())
@@ -9,10 +11,10 @@ def test_worker_processes_and_deletes_events():
     event = OutboxEvent(event_type="TEST_EVENT", payload={"msg": "hello"})
     db.add(event)
     db.commit()
-    
+
     # Process it
     process_outbox()
-    
+
     # Verify it was safely deleted from the outbox
     remaining = db.query(OutboxEvent).count()
     assert remaining == 0
@@ -22,7 +24,7 @@ def test_worker_handles_exception():
     with patch("worker.SessionLocal") as mock_session:
         mock_db = mock_session.return_value
         mock_db.query.side_effect = Exception("Simulated DB Failure")
-        
+
         # The worker must catch the error, log it, rollback, and NOT crash
         process_outbox()
         mock_db.rollback.assert_called_once()
@@ -32,5 +34,5 @@ def test_worker_empty_outbox():
     db = next(get_db())
     db.query(OutboxEvent).delete()
     db.commit()
-    
+
     process_outbox() # Should gracefully exit

@@ -9,8 +9,6 @@ Validates:
   • Application advertises HTTPS-only in production config
   • Proxy trust is properly configured (X-Forwarded-For)
 """
-import pytest
-from main import app as flask_app
 
 
 class TestTLSEnforcement:
@@ -60,6 +58,7 @@ class TestTLSEnforcement:
     def test_proxy_fix_configured(self):
         """NIST SC-8: ProxyFix must be configured for correct IP extraction."""
         import inspect
+
         # FlaskInstrumentor wraps wsgi_app, hiding ProxyFix at runtime.
         # Verify it's applied in source code instead.
         import main

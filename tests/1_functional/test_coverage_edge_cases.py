@@ -1,14 +1,17 @@
-import pytest
 import importlib
+
+import pytest
+
 import main
 from main import get_db
+
 
 def test_get_db_yield_and_close():
     """Forces the generator to exhaust so the 'finally: db.close()' block is covered."""
     gen = get_db()
     db = next(gen)
     assert db is not None
-    
+
     # Asking for the next item forces the generator to finish and run the finally block
     with pytest.raises(StopIteration):
         next(gen)

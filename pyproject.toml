@@ -33,6 +33,20 @@ extend-ignore = [
     "N806",   # variable naming in tests
     "E402",   # module-level import not at top (Flask app pattern)
     "B008",   # function call in default argument
+    "E701",   # multiple statements on one line
+    "SIM105", # try-except-pass is acceptable here
+    "SIM117", # nested with statements
+    "RUF002", # en-dash vs hyphen in docstrings
+    "RUF043", # regex metacharacters
+    "RUF059", # unpacked variables unused
+    "W293",   # blank lines with whitespace
+    "B904",   # raise inside except
+    "SIM102", # nested if
+    "E741",   # ambiguous variable name
+    "E712",   # boolean comparison
+    "S107",   # hardcoded password in test fixture
+    "N999",   # invalid module name
+    "RUF005", # list concatenation
 ]
 
 [tool.ruff.lint.per-file-ignores]

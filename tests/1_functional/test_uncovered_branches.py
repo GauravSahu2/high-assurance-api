@@ -1,7 +1,11 @@
 import os
 from unittest.mock import patch
+
 import pytest
-from main import app as flask_app, generate_jwt, get_db, Account
+
+from main import Account, generate_jwt, get_db
+from main import app as flask_app
+
 
 @pytest.fixture()
 def anon_client():
@@ -14,9 +18,8 @@ def test_transfer_unknown_token_returns_401(anon_client):
     assert res.status_code == 401
 
 def test_chaos_monkey_returns_503(anon_client):
-    with patch.dict(os.environ, {"CHAOS_MODE": "true"}):
-        with patch("random.random", return_value=0.0):
-            res = anon_client.get("/health")
+    with patch.dict(os.environ, {"CHAOS_MODE": "true"}), patch("random.random", return_value=0.0):
+        res = anon_client.get("/health")
     assert res.status_code == 503
 
 def test_cors_allowed_origin_gets_header(anon_client):
@@ -43,7 +46,9 @@ def test_balance_unknown_account_returns_404(anon_client):
 
 def test_expired_jwt_returns_401(anon_client):
     from datetime import UTC, datetime, timedelta
+
     import jwt
+
     from main import JWT_SECRET
     expired_token = jwt.encode({"sub": "user_1", "role": "user", "exp": datetime.now(UTC) - timedelta(hours=1), "iat": datetime.now(UTC) - timedelta(hours=2)}, JWT_SECRET, algorithm="HS256")
     res = anon_client.post("/transfer", json={"amount": 10, "to_user": "user_2"}, headers={"Authorization": f"Bearer {expired_token}"})

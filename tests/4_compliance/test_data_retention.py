@@ -11,13 +11,10 @@ Validates:
 """
 from datetime import UTC, datetime, timedelta
 
-import pytest
 import main
-from main import app as flask_app, purge_expired_idempotency_keys
 from database import SessionLocal
-from models import Account, IdempotencyKey, OutboxEvent
-
-
+from main import purge_expired_idempotency_keys
+from models import Account, IdempotencyKey
 
 
 class TestDataRetentionPolicy:

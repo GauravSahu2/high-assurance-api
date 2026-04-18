@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 
-
 # ── Environment ───────────────────────────────────────────────────────────────
 TEST_MODE: bool = bool(os.environ.get("TEST_MODE"))
 DEPLOY_ENV: str = os.environ.get("DEPLOY_ENV", "development")

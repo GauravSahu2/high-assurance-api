@@ -9,7 +9,6 @@ import socket
 from urllib.parse import urlparse
 
 import requests
-from requests.exceptions import ConnectionError, Timeout
 
 # Ranges that must never be reachable from this service
 _BLOCKED_NETWORKS = [

@@ -1,7 +1,8 @@
-import pytest
 import io
+from unittest.mock import patch
+
 import redis
-from unittest.mock import patch, MagicMock
+
 import main
 
 

@@ -14,9 +14,6 @@ import concurrent.futures
 import threading
 import time
 
-import pytest
-
-
 # ── Simulation Layer (retained for educational value) ─────────────────────────
 
 DATABASE = {"account_123_balance": 100}

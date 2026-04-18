@@ -10,16 +10,11 @@ Validates:
   • Failed authentication attempts are logged
   • All financial transactions generate audit events
 """
-import time
 from datetime import UTC, datetime
 
-import pytest
 import main
-from main import app as flask_app
 from database import SessionLocal
-from models import OutboxEvent, Account
-
-
+from models import OutboxEvent
 
 
 class TestAuditTrailCompleteness:
@@ -101,14 +96,16 @@ class TestAuditImmutability:
 
     def test_outbox_event_has_created_at_default(self):
         """Verify the ORM model auto-stamps creation time."""
-        from models import OutboxEvent
         import inspect
+
+        from models import OutboxEvent
         source = inspect.getsource(OutboxEvent)
         assert "created_at" in source, "OutboxEvent model must have a created_at field"
 
     def test_outbox_events_are_append_only_by_design(self, client):
         """Verify that the API never issues UPDATE on outbox events."""
         import inspect
+
         from main import transfer
         source = inspect.getsource(transfer)
         # The transfer function should only db.add() outbox events, never update them

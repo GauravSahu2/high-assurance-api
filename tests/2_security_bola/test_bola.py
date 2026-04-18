@@ -1,4 +1,3 @@
-import pytest
 
 def test_bola_authorized_access_own_resource(client, token_factory):
     headers = {"Authorization": f"Bearer {token_factory('user_1')}"}

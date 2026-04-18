@@ -126,6 +126,7 @@ def test_jwt_regular_user_role():
     import os
 
     import jwt
+
     from main import generate_jwt
 
     # Call the function directly with a non-admin username
@@ -144,6 +145,7 @@ def test_jwt_absolute_time_strictness():
     from datetime import datetime
 
     import jwt
+
     from main import generate_jwt
 
     # 1. Save current TZ and warp to New York

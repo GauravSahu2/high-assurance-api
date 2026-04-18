@@ -11,9 +11,6 @@ Validates:
 """
 import os
 
-import pytest
-from main import app as flask_app
-
 
 class TestConsentAndTransparency:
     """GDPR Art.6: Lawfulness of data processing."""

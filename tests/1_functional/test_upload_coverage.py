@@ -5,9 +5,6 @@ These tests exercise the upload validation branches that are not
 reached by Schemathesis fuzzing (file size, empty name, too-large).
 """
 import io
-import os
-
-import pytest
 
 
 def test_upload_empty_filename(client, auth_header):

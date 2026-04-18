@@ -1,10 +1,11 @@
-import os
-import pytest
-from unittest.mock import patch
-import redis
 import importlib
+import os
+from unittest.mock import patch
+
+import redis
+
 import main
-from main import app, init_db, generate_jwt
+from main import app, generate_jwt, init_db
 
 client = app.test_client()
 

@@ -12,8 +12,6 @@ Validates:
 """
 import os
 
-import pytest
-
 
 class TestChangeManagement:
     """SOC 2 CC8.1: Changes must be authorized, tested, and documented."""

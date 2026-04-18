@@ -1,4 +1,3 @@
-import pytest
 
 def test_user_can_read_own_balance(client, token_factory):
     headers = {"Authorization": f"Bearer {token_factory('user_1')}"}

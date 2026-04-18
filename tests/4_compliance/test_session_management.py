@@ -10,16 +10,11 @@ Validates:
   • Token includes required claims (sub, exp, iat, jti)
   • Expired tokens are rejected
 """
-import os
-import time
 
 import jwt
-import pytest
+
 import main
-from main import app as flask_app
 from security import JWT_SECRET
-
-
 
 
 class TestTokenLifecycle:

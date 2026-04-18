@@ -30,27 +30,37 @@ from flask_cors import CORS
 from prometheus_client import Counter, Histogram
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from config import ALLOWED_ORIGINS, TEST_MODE  # noqa: F401 — re-exported for tests
-from security import JWT_SECRET, apply_security_headers  # noqa: F401
-from logger import logger
-from database import get_db, SessionLocal, engine, Base
-from models import Account, IdempotencyKey, OutboxEvent
-from telemetry import init_telemetry
-from routes import register_blueprints
-
 # Re-export auth utilities for backward compatibility with tests
-from auth import (  # noqa: F401
+from auth import (
     DUMMY_HASH,
     USERS,
-    extract_bearer_token as _extract_bearer,
     generate_jwt,
+)
+from auth import (
+    extract_bearer_token as _extract_bearer,
+)
+from auth import (
     hash_password as _hp,
+)
+from auth import (
     verify_jwt as _verify_jwt_internal,
+)
+from auth import (
     verify_password as _vp,
 )
-from routes.transfer_routes import purge_expired_idempotency_keys  # noqa: F401
-from routes.transfer_routes import transfer  # noqa: F401 — re-exported for compliance tests
-from routes.auth_routes import login, logout  # noqa: F401
+from config import ALLOWED_ORIGINS, TEST_MODE
+from database import Base, SessionLocal, engine, get_db
+from logger import logger
+from models import Account, IdempotencyKey, OutboxEvent
+from routes import register_blueprints
+from routes.auth_routes import login, logout
+from routes.transfer_routes import (
+    purge_expired_idempotency_keys,
+    transfer,
+)
+from security import JWT_SECRET, apply_security_headers
+from telemetry import init_telemetry
+
 
 # ── Application Factory ──────────────────────────────────────────────────────
 def create_app() -> Flask:
@@ -135,7 +145,8 @@ init_db()
 
 
 # ── Prometheus Metrics (Singleton Pattern) ────────────────────────────────────
-from prometheus_client import CollectorRegistry, REGISTRY as _PROM_REGISTRY
+from prometheus_client import REGISTRY as _PROM_REGISTRY
+from prometheus_client import CollectorRegistry
 
 
 def _get_or_create_counter(name: str, desc: str, labels: list[str]) -> Counter:
@@ -225,7 +236,7 @@ def method_not_allowed(e):
 
 
 # ── Needed for jsonify in error handlers ──────────────────────────────────────
-from flask import jsonify  # noqa: E402  # pragma: no cover
+from flask import jsonify  # pragma: no cover
 
 # ── Global App Instance ───────────────────────────────────────────────────────
 # Instantiated for Gunicorn and tests

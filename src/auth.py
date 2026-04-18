@@ -8,11 +8,9 @@ Security design:
 """
 from __future__ import annotations
 
-import os
 import time
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 
 import bcrypt
 import jwt as pyjwt
@@ -63,7 +61,7 @@ def generate_jwt(username: str, role: str = "user") -> str:
     return pyjwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def verify_jwt(token: Optional[str], redis_client: object = None) -> Optional[dict]:
+def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
     """Decode and verify a JWT token.
 
     Checks token-level revocation via Redis JTI blacklist.
@@ -85,7 +83,7 @@ def verify_jwt(token: Optional[str], redis_client: object = None) -> Optional[di
         return None
 
 
-def extract_bearer_token(header: Optional[str]) -> Optional[str]:
+def extract_bearer_token(header: str | None) -> str | None:
     """Extract a Bearer token from an Authorization header value.
 
     Returns the token string or None if the header is missing/malformed.

@@ -11,7 +11,6 @@ actual API's authorization boundaries.
 """
 from __future__ import annotations
 
-
 # ── Simulation Layer (retained for educational value) ─────────────────────────
 
 def execute_mcp_tool(user_prompt, tool_name):

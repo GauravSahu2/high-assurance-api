@@ -10,8 +10,6 @@ Validates:
   • Internal paths/file locations are never exposed
   • HTTP method not allowed returns proper Allow header
 """
-import pytest
-from main import app as flask_app, redis_client
 
 
 
