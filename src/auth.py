@@ -79,7 +79,7 @@ def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
             except Exception:
                 pass  # Redis failure → allow token (fail-open for availability)
         return payload
-    except pyjwt.PyJWTError:
+    except Exception:
         return None
 
 
