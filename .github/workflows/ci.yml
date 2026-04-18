@@ -70,7 +70,7 @@ jobs:
         run: pytest -p no:warnings --cov=src -rs
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report
@@ -106,7 +106,7 @@ jobs:
             -z "-config rules.cookie.ignorelist=JSESSIONID -config rules.tags.ignore=10096"
 
       - name: Upload ZAP report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: zap-report

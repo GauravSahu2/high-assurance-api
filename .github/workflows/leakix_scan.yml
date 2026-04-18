@@ -74,7 +74,7 @@ jobs:
           cat exposure_audit_report.txt >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Audit Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Exposure-Audit-Local-${{ github.run_number }}
@@ -211,7 +211,7 @@ jobs:
           fi
 
       - name: Upload LeakIX Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: LeakIX-OSINT-Report-${{ github.run_number }}
