@@ -4,7 +4,7 @@ metadata:
   name: high-assurance-api
   namespace: high-assurance
   annotations:
-    checkov.io/skip1: CKV2_K8S_6=Network policy managed globally by service mesh
+    checkov.io/skip: CKV2_K8S_6=Network policy managed globally by service mesh
   labels:
     app: high-assurance-api
     tier: backend
@@ -27,7 +27,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "5000"
         prometheus.io/path: "/metrics"
-        checkov.io/skip1: CKV_K8S_35=12-factor env vars injected via secrets
+        checkov.io/skip: CKV_K8S_35=12-factor env vars injected via secrets
     spec:
       automountServiceAccountToken: false
       securityContext:
