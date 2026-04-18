@@ -38,7 +38,7 @@ jobs:
         ./run_all_20_layers.sh
 
     - name: Upload ZAP Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       # Always attempt upload — ZAP step uses || true so it won't block,
       # but the report may not exist if Docker is unavailable.
       if: always()
