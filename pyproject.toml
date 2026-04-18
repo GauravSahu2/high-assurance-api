@@ -1,8 +1,59 @@
+[project]
+name = "high-assurance-api"
+version = "2.0.0"
+description = "Compliance-grade financial API with 20-tier defense-in-depth testing"
+requires-python = ">=3.12"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["src", "tests"]
+
 [tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "S",      # bandit security
+    "B",      # bugbear
+    "UP",     # pyupgrade
+    "SIM",    # simplify
+    "RUF",    # ruff-specific
+]
 extend-ignore = [
-    "F403", "S110", "S311", "S104", "S603", "S607", "F841", "N806"
+    "F403",   # star imports (used in __init__.py)
+    "S110",   # try-except-pass (intentional graceful degradation)
+    "S311",   # random (used in chaos mode, not crypto)
+    "S104",   # binding to 0.0.0.0 (intentional for containers)
+    "S603",   # subprocess calls (OPA policy tests)
+    "S607",   # partial executable path
+    "F841",   # unused variables (test assertions)
+    "N806",   # variable naming in tests
+    "E402",   # module-level import not at top (Flask app pattern)
+    "B008",   # function call in default argument
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S106", "S105", "E501"]
+"src/main.py" = ["E402", "F401"]
+
 [tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
 ignore_missing_imports = true
 disable_error_code = ["import-untyped", "no-any-return", "annotation-unchecked"]
+exclude = ["venv", "tests", "migrations"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["mutants", "venv", ".env", ".git"]
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov=src --cov-fail-under=100 --cov-report=term-missing"
+filterwarnings = [
+    "ignore::DeprecationWarning:opentelemetry.*",
+    "ignore::UserWarning:_hypothesis_pytestplugin.*",
+]

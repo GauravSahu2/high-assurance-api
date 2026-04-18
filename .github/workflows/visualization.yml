@@ -1,0 +1,61 @@
+name: Codebase Architecture Visualizer
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "k8s/**"
+      - "infra/**"
+      - ".github/workflows/**"
+      - "Dockerfile*"
+      - "docker-compose*.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update_diagram:
+    name: "Generate Architecture SVG"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate Source-Level Dependency Map
+        uses: githubocto/repo-visualizer@main
+        with:
+          root_path: "src/"
+          excluded_paths: "node_modules,venv,__pycache__,.pytest_cache,.mypy_cache,.ruff_cache,.trivycache,.hypothesis"
+          output_file: "docs/architecture_src.svg"
+          commit_message: "docs: auto-update source dependency graph [skip ci]"
+          should_push: true
+          max_depth: 4
+
+      - name: Generate Full Project Topology Map
+        uses: githubocto/repo-visualizer@main
+        with:
+          excluded_paths: "node_modules,venv,__pycache__,.pytest_cache,.mypy_cache,.ruff_cache,.trivycache,.hypothesis,.git,logs,audit_reports,test-results,hsa-reports,.benchmarks,.coverage,.secrets.baseline"
+          output_file: "docs/architecture_full.svg"
+          commit_message: "docs: auto-update full project topology [skip ci]"
+          should_push: true
+          max_depth: 3
+
+      - name: Generate Infrastructure Layout Map
+        uses: githubocto/repo-visualizer@main
+        with:
+          root_path: "k8s/"
+          excluded_paths: ""
+          output_file: "docs/architecture_infra.svg"
+          commit_message: "docs: auto-update infrastructure layout [skip ci]"
+          should_push: true
+          max_depth: 3
+
+      - name: Upload Visualization Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Architecture-Maps-${{ github.run_number }}
+          path: docs/architecture_*.svg
+          retention-days: 90

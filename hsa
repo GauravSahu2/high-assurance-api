@@ -1,0 +1,32 @@
+#!/bin/bash
+PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE}" )" && pwd )"
+COMMAND=$1
+TARGET=$2
+
+case $COMMAND in
+    -i|--inner)
+        echo "⚡ Running Inner Loop..."
+        "$PROJECT_DIR/run_inner_loop.sh"
+        ;;
+    -a|--all)
+        echo "🛡️  Running Full 20-Tier Gauntlet (Dynamic/Runtime)..."
+        "$PROJECT_DIR/run_all_20_layers.sh"
+        ;;
+    scan)
+        echo "🧬 Initiating Polyglot Static Scan..."
+        "$PROJECT_DIR/hsa-scan.sh" "$TARGET"
+        ;;
+    *)
+        echo "Usage: hsa [command] [target]"
+        echo ""
+        echo "Dynamic Testing (Runtime):"
+        echo "  -i, --inner   Run Python Inner Loop (27s)"
+        echo "  -a, --all     Run 20-Tier DAST Gauntlet (65s)"
+        echo ""
+        echo "Universal SaaS Scanning (Multi-Language):"
+        echo "  scan [path]   Run Polyglot SAST/SCA/Secrets on ANY folder"
+        echo "                Example: hsa scan ."
+        echo "                Example: hsa scan /path/to/java-project"
+        exit 1
+        ;;
+esac

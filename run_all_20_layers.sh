@@ -29,7 +29,7 @@ echo "🧪 Running pytest (Integration/Unit)..."
 pytest -p no:warnings --cov=src -rsno --cov-report=term-missing
 
 echo "🚀 Starting Production Gunicorn Server..."
-TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-12345" gunicorn --threads 4 -b 0.0.0.0:5000 main:app > server.log 2>&1 &
+TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-123456789012345678901234" gunicorn --workers 2 --threads 4 -b 0.0.0.0:5000 main:app > server.log 2>&1 &
 API_PID=$!
 # Ensure server is killed even if script fails
 trap 'kill "$API_PID" 2>/dev/null || true' EXIT
@@ -47,9 +47,9 @@ VIP_TOKEN=$(curl -s -X POST http://localhost:5000/login -H "Content-Type: applic
 
 # Removed --quiet (unsupported)
 if [ -n "$VIP_TOKEN" ]; then
-    schemathesis run openapi.yaml --base-url http://localhost:5000 -c not_a_server_error -H "Authorization: Bearer $VIP_TOKEN"
+    schemathesis run openapi.yaml --url http://localhost:5000 -c not_a_server_error -H "Authorization: Bearer $VIP_TOKEN"
 else
-    schemathesis run openapi.yaml --base-url http://localhost:5000 -c not_a_server_error
+    schemathesis run openapi.yaml --url http://localhost:5000 -c not_a_server_error
 fi
 
 echo "🔐 Running OWASP ZAP..."

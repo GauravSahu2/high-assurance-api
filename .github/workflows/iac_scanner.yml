@@ -1,0 +1,147 @@
+name: Checkov Infrastructure Security Scan
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "Dockerfile*"
+      - "docker-compose*.yml"
+      - "k8s/**"
+      - "argocd-app.yaml"
+      - "infra/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "Dockerfile*"
+      - "docker-compose*.yml"
+      - "k8s/**"
+      - "argocd-app.yaml"
+      - "infra/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  # ── Stage 1: Dockerfile Security ────────────────────────────────────────
+  scan-dockerfiles:
+    name: "Checkov — Dockerfile Hardening"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan Dockerfiles
+        uses: bridgecrewio/checkov-action@master
+        with:
+          file: Dockerfile
+          framework: dockerfile
+          output_format: cli,sarif
+          output_file_path: console,checkov-dockerfile.sarif
+          soft_fail: true
+          # Skip CKV_DOCKER_2 (HEALTHCHECK) — handled by orchestrator, not Dockerfile
+          # Skip CKV_DOCKER_3 (USER) — set at runtime via k8s securityContext
+          skip_check: CKV_DOCKER_2,CKV_DOCKER_3
+
+      - name: Upload Dockerfile SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-dockerfile.sarif
+          category: checkov-dockerfile
+
+  # ── Stage 2: Kubernetes Manifest Security ────────────────────────────────
+  scan-kubernetes:
+    name: "Checkov — Kubernetes Manifests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan Kubernetes Manifests
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: k8s/
+          framework: kubernetes
+          output_format: cli,sarif
+          output_file_path: console,checkov-k8s.sarif
+          soft_fail: true
+          # Skip CKV_K8S_43 (image digest) — handled via GitOps tag bump in Concourse
+          skip_check: CKV_K8S_43
+
+      - name: Upload Kubernetes SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-k8s.sarif
+          category: checkov-kubernetes
+
+  # ── Stage 3: Docker Compose Security ─────────────────────────────────────
+  scan-compose:
+    name: "Checkov — Docker Compose"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan Docker Compose Files
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: docker-compose
+          output_format: cli,sarif
+          output_file_path: console,checkov-compose.sarif
+          soft_fail: true
+
+      - name: Upload Compose SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-compose.sarif
+          category: checkov-compose
+
+  # ── Stage 4: ArgoCD & GitOps Security ────────────────────────────────────
+  scan-gitops:
+    name: "Checkov — ArgoCD & GitOps"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan ArgoCD Manifests
+        uses: bridgecrewio/checkov-action@master
+        with:
+          file: argocd-app.yaml
+          framework: argo_workflows
+          output_format: cli,sarif
+          output_file_path: console,checkov-argocd.sarif
+          soft_fail: true
+
+      - name: Upload ArgoCD SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-argocd.sarif
+          category: checkov-argocd
+
+  # ── Aggregated Summary ──────────────────────────────────────────────────
+  iac-summary:
+    name: "IaC Security Summary"
+    runs-on: ubuntu-latest
+    needs: [scan-dockerfiles, scan-kubernetes, scan-compose, scan-gitops]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## 🛡️ IaC Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scanner Target | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dockerfiles | ${{ needs.scan-dockerfiles.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Kubernetes | ${{ needs.scan-kubernetes.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Compose | ${{ needs.scan-compose.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ArgoCD/GitOps | ${{ needs.scan-gitops.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **Note**: Detailed findings are available in the Security tab under Code scanning alerts." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,206 @@
+# ════════════════════════════════════════════════════════════════════════════════
+# Chaos Mesh Experiments — High-Assurance API Resilience Suite
+# ════════════════════════════════════════════════════════════════════════════════
+# Prerequisites:
+#   helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-mesh --create-namespace
+#   kubectl apply -f k8s/namespace.yaml
+#
+# Usage:
+#   kubectl apply -f k8s/chaos_network_delay.yaml
+#   kubectl get networkchaos,podchaos,iochaos,schedule -A
+#
+# Cleanup:
+#   kubectl delete -f k8s/chaos_network_delay.yaml
+# ════════════════════════════════════════════════════════════════════════════════
+
+---
+# ── Experiment 1: Database Latency Injection (Postgres) ────────────────────────
+# Simulates WAN-level latency (1000ms) between the API pods and Postgres.
+# Validates: connection pool timeout handling, circuit breaker activation,
+#            health endpoint 503 degradation, and graceful transaction rollback.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: postgres-latency-injection
+  namespace: default
+  labels:
+    experiment: resilience-suite
+    tier: database
+  annotations:
+    chaos-mesh.org/description: "Inject 1s network delay to Postgres pods"
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces: ["default"]
+    labelSelectors:
+      app: postgres
+  delay:
+    latency: "1000ms"
+    correlation: "100"
+    jitter: "200ms"
+  direction: to
+  target:
+    selector:
+      namespaces: ["default"]
+      labelSelectors:
+        app: high-assurance-api
+  duration: "60s"
+
+---
+# ── Experiment 2: Redis Latency Injection ──────────────────────────────────────
+# Simulates degraded Redis performance (500ms latency).
+# Validates: rate-limiter fallback, JWT revocation cache miss handling,
+#            login lockout graceful degradation (503 responses).
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: redis-latency-injection
+  namespace: default
+  labels:
+    experiment: resilience-suite
+    tier: cache
+  annotations:
+    chaos-mesh.org/description: "Inject 500ms network delay to Redis pods"
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces: ["default"]
+    labelSelectors:
+      app: redis
+  delay:
+    latency: "500ms"
+    correlation: "100"
+    jitter: "100ms"
+  direction: to
+  target:
+    selector:
+      namespaces: ["default"]
+      labelSelectors:
+        app: high-assurance-api
+  duration: "60s"
+
+---
+# ── Experiment 3: Redis Partition (Total Loss) ────────────────────────────────
+# Simulates complete Redis network partition (100% packet loss).
+# Validates: API continues serving transfers with DB-only path,
+#            /health returns 503 with rollback_flag, login returns 503.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: redis-network-partition
+  namespace: default
+  labels:
+    experiment: resilience-suite
+    tier: cache
+  annotations:
+    chaos-mesh.org/description: "Complete network partition to Redis"
+spec:
+  action: loss
+  mode: all
+  selector:
+    namespaces: ["default"]
+    labelSelectors:
+      app: redis
+  loss:
+    loss: "100"
+    correlation: "100"
+  direction: to
+  target:
+    selector:
+      namespaces: ["default"]
+      labelSelectors:
+        app: high-assurance-api
+  duration: "30s"
+
+---
+# ── Experiment 4: API Pod Kill (Crash Recovery) ───────────────────────────────
+# Kills one API pod to validate Kubernetes self-healing.
+# Validates: deployment replica recovery, zero-downtime via rolling restart,
+#            liveness probe re-registration, no data corruption on kill.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: api-pod-kill
+  namespace: default
+  labels:
+    experiment: resilience-suite
+    tier: compute
+  annotations:
+    chaos-mesh.org/description: "Kill one API pod to test self-healing"
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces: ["default"]
+    labelSelectors:
+      app: hsa-api
+  gracePeriod: 0
+  duration: "10s"
+
+---
+# ── Experiment 5: Disk I/O Latency on Database ────────────────────────────────
+# Injects disk I/O delay on Postgres pods to simulate slow storage.
+# Validates: query timeout handling, transaction retry logic,
+#            connection pool exhaustion under I/O pressure.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: IOChaos
+metadata:
+  name: postgres-io-latency
+  namespace: default
+  labels:
+    experiment: resilience-suite
+    tier: storage
+  annotations:
+    chaos-mesh.org/description: "Inject 200ms I/O delay on Postgres data dir"
+spec:
+  action: latency
+  mode: all
+  selector:
+    namespaces: ["default"]
+    labelSelectors:
+      app: postgres
+  volumePath: /var/lib/postgresql/data
+  path: "*"
+  delay: "200ms"
+  percent: 80
+  duration: "45s"
+
+---
+# ── Scheduled Chaos: Nightly Resilience Sweep ─────────────────────────────────
+# Runs the Redis partition experiment every night at 2:00 AM UTC.
+# This validates that overnight batch jobs and cron tasks handle
+# cache unavailability without silent data corruption.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Schedule
+metadata:
+  name: nightly-redis-partition
+  namespace: default
+  labels:
+    experiment: resilience-suite
+    tier: scheduled
+  annotations:
+    chaos-mesh.org/description: "Nightly scheduled Redis partition test"
+spec:
+  schedule: "0 2 * * *"
+  type: NetworkChaos
+  historyLimit: 5
+  concurrencyPolicy: Forbid
+  networkChaos:
+    action: loss
+    mode: all
+    selector:
+      namespaces: ["default"]
+      labelSelectors:
+        app: redis
+    loss:
+      loss: "100"
+      correlation: "100"
+    direction: to
+    target:
+      selector:
+        namespaces: ["default"]
+        labelSelectors:
+          app: high-assurance-api
+    duration: "30s"

@@ -12,7 +12,7 @@ import pytest
 
 API_MANIFEST = {
     "environment": "development",
-    "jwt_secret": "super-secure-dev-secret-key-12345",
+    "jwt_secret": "super-secure-dev-secret-key-123456789012345678901234",
     "cors_wildcard": True,
     "routes": [
         {"path": "/health", "auth_required": False},
@@ -27,7 +27,7 @@ API_MANIFEST = {
 
 PROD_MANIFEST = {
     "environment": "production",
-    "jwt_secret": "super-secure-dev-secret-key-12345",
+    "jwt_secret": "super-secure-dev-secret-key-123456789012345678901234",
     "cors_wildcard": True,
     "routes": API_MANIFEST["routes"],
 }

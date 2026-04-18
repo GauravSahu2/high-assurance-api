@@ -1,0 +1,242 @@
+name: LeakIX Exposure Intelligence Scan
+
+# ════════════════════════════════════════════════════════════════════════════════
+# LeakIX OSINT Scanner — External Exposure Detection
+# ════════════════════════════════════════════════════════════════════════════════
+# PURPOSE:
+#   Scans your deployed infrastructure from the OUTSIDE (internet perspective)
+#   to detect services/data that are accidentally exposed — the same way an
+#   attacker would discover them using LeakIX, Shodan, or Censys.
+#
+# WHAT IT CATCHES (that internal scanners miss):
+#   • Open Redis/Postgres/Elasticsearch ports on public IPs
+#   • Exposed .env files, .git directories, or debug endpoints
+#   • Default credentials on admin panels
+#   • Leaked API keys or tokens in public-facing responses
+#   • Misconfigured CORS allowing wildcard origins
+#   • Server version fingerprinting (X-Powered-By, Server headers)
+#
+# IMPACT ON PIPELINE:
+#   • Runs AFTER deployment (post-deploy gate)
+#   • Soft-fail: won't block the build, but will surface warnings
+#   • Requires LEAKIX_API_KEY secret (free at https://leakix.net)
+#   • Also runs a LOCAL exposure audit that doesn't need any API key
+#
+# IMPACT ON CODE:
+#   • Does NOT modify application code
+#   • The local audit checks your source for patterns that WOULD trigger
+#     LeakIX detections if deployed (debug routes, default creds, etc.)
+# ════════════════════════════════════════════════════════════════════════════════
+
+on:
+  push:
+    branches: ["main"]
+  # Can be triggered manually with a target domain/IP
+  workflow_dispatch:
+    inputs:
+      target_domain:
+        description: "Domain or IP to scan (e.g., api.example.com)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  # Default target — override via workflow_dispatch input or repository variable
+  SCAN_TARGET: ${{ inputs.target_domain || vars.LEAKIX_SCAN_TARGET || 'high-assurance-api.example.com' }}
+
+jobs:
+  # ── Stage 1: Local Exposure Audit (No API Key Required) ──────────────────
+  # Runs on EVERY push — catches exposure patterns in source code BEFORE deploy
+  local-exposure-audit:
+    name: "🔍 Pre-Deploy Exposure Audit (Local)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Exposure Pattern Scanner
+        id: local_audit
+        run: |
+          python scripts/exposure_audit.py \
+            --format github \
+            --fail-on critical 2>&1 | tee exposure_audit_report.txt
+
+          # Write results to job summary
+          echo "## 🔍 Local Exposure Audit Results" >> $GITHUB_STEP_SUMMARY
+          cat exposure_audit_report.txt >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Exposure-Audit-Local-${{ github.run_number }}
+          path: exposure_audit_report.txt
+          retention-days: 90
+
+  # ── Stage 2: LeakIX API Scan (Post-Deploy Verification) ──────────────────
+  # Queries LeakIX for your domain to detect externally-visible exposures
+  leakix-api-scan:
+    name: "🌐 Post-Deploy LeakIX OSINT Scan"
+    runs-on: ubuntu-latest
+    needs: local-exposure-audit
+    # Only run on main branch and when API key is available
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install LeakIX CLI
+        run: |
+          # Install l9explore — the official LeakIX Go-based scanner
+          LEAKIX_VERSION="v2.2.1"
+          curl -sSL "https://github.com/LeakIX/l9explore/releases/download/${LEAKIX_VERSION}/l9explore-linux-amd64" \
+            -o /usr/local/bin/l9explore && chmod +x /usr/local/bin/l9explore || {
+            echo "⚠️  LeakIX CLI install failed — falling back to API-only mode"
+          }
+
+      - name: Query LeakIX API for Domain Intelligence
+        env:
+          LEAKIX_API_KEY: ${{ secrets.LEAKIX_API_KEY }}
+        run: |
+          TARGET="${{ env.SCAN_TARGET }}"
+          echo "## 🌐 LeakIX OSINT Report for: ${TARGET}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -z "$LEAKIX_API_KEY" ]; then
+            echo "> ⚠️ **LEAKIX_API_KEY not configured** — running in limited mode." >> $GITHUB_STEP_SUMMARY
+            echo "> Add a free API key from https://leakix.net/auth/signup to repo secrets." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            AUTH_HEADER=""
+          else
+            AUTH_HEADER="api-key: ${LEAKIX_API_KEY}"
+          fi
+
+          # ── Query 1: Host-level exposure intelligence ──
+          echo "### Host Exposure Report" >> $GITHUB_STEP_SUMMARY
+          HTTP_CODE=$(curl -s -o host_report.json -w "%{http_code}" \
+            -H "Accept: application/json" \
+            ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+            "https://leakix.net/host/${TARGET}" 2>/dev/null || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ] && [ -s host_report.json ]; then
+            # Parse exposed services
+            SERVICES=$(python3 -c "
+          import json, sys
+          try:
+              data = json.load(open('host_report.json'))
+              services = data.get('Services', []) if isinstance(data, dict) else []
+              if not services:
+                  print('✅ No exposed services detected')
+                  sys.exit(0)
+              print(f'⚠️  **{len(services)} exposed service(s) detected:**')
+              print('| Port | Protocol | Software | Severity |')
+              print('|------|----------|----------|----------|')
+              for s in services[:20]:
+                  port = s.get('port', '?')
+                  proto = s.get('protocol', '?')
+                  sw = s.get('software', {}).get('name', 'unknown')
+                  sev = s.get('leak', {}).get('severity', 'info')
+                  print(f'| {port} | {proto} | {sw} | {sev} |')
+          except Exception as e:
+              print(f'ℹ️  Could not parse response: {e}')
+          " 2>&1)
+            echo "$SERVICES" >> $GITHUB_STEP_SUMMARY
+          elif [ "$HTTP_CODE" = "404" ]; then
+            echo "✅ **No exposure data found** — target is not indexed by LeakIX (this is good)." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️  API returned HTTP ${HTTP_CODE} — target may not be publicly accessible yet." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # ── Query 2: Subdomain enumeration ──
+          echo "### Subdomain Exposure" >> $GITHUB_STEP_SUMMARY
+          DOMAIN_ROOT=$(echo "$TARGET" | awk -F. '{print $(NF-1)"."$NF}')
+          SUB_CODE=$(curl -s -o subdomains.json -w "%{http_code}" \
+            -H "Accept: application/json" \
+            ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+            "https://leakix.net/api/subdomains/${DOMAIN_ROOT}" 2>/dev/null || echo "000")
+
+          if [ "$SUB_CODE" = "200" ] && [ -s subdomains.json ]; then
+            python3 -c "
+          import json
+          try:
+              subs = json.load(open('subdomains.json'))
+              if not subs:
+                  print('✅ No subdomains indexed')
+              else:
+                  print(f'ℹ️  {len(subs)} subdomain(s) indexed by LeakIX')
+                  for s in subs[:10]:
+                      print(f'  - {s.get(\"subdomain\", s)}')
+          except: print('✅ No subdomain data')
+          " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No subdomain data indexed." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # ── Query 3: Search for leaked data mentioning the target ──
+          echo "### Leak Search Results" >> $GITHUB_STEP_SUMMARY
+          LEAK_CODE=$(curl -s -o leaks.json -w "%{http_code}" \
+            -H "Accept: application/json" \
+            ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+            "https://leakix.net/search?scope=leak&q=${TARGET}" 2>/dev/null || echo "000")
+
+          if [ "$LEAK_CODE" = "200" ] && [ -s leaks.json ]; then
+            python3 -c "
+          import json
+          try:
+              leaks = json.load(open('leaks.json'))
+              if not leaks:
+                  print('✅ **No data leaks detected** for this target.')
+              else:
+                  print(f'🚨 **{len(leaks)} potential leak(s) found:**')
+                  for l in leaks[:10]:
+                      etype = l.get('event_type', 'unknown')
+                      esrc = l.get('event_source', 'unknown')
+                      print(f'  - Type: {etype} | Source: {esrc}')
+          except: print('✅ No leak data found')
+          " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No leak data found for this target." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload LeakIX Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: LeakIX-OSINT-Report-${{ github.run_number }}
+          path: |
+            host_report.json
+            subdomains.json
+            leaks.json
+          retention-days: 90
+
+  # ── Summary ──────────────────────────────────────────────────────────────
+  exposure-summary:
+    name: "📊 Exposure Intelligence Summary"
+    runs-on: ubuntu-latest
+    needs: [local-exposure-audit, leakix-api-scan]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## 🛡️ Exposure Intelligence Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Local Exposure Audit | ${{ needs.local-exposure-audit.result == 'success' && '✅ Passed' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| LeakIX OSINT Scan | ${{ needs.leakix-api-scan.result == 'success' && '✅ Clean' || needs.leakix-api-scan.result == 'skipped' && '⏭️ Skipped (not main)' || '⚠️ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **What this means**: The local audit checks your source code for patterns" >> $GITHUB_STEP_SUMMARY
+          echo "> that would cause LeakIX/Shodan/Censys detections if deployed. The API scan" >> $GITHUB_STEP_SUMMARY
+          echo "> verifies your live infrastructure from an attacker's perspective." >> $GITHUB_STEP_SUMMARY

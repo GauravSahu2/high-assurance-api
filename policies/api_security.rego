@@ -16,7 +16,7 @@ deny contains msg if {
 # JWT secret must not be the default dev value in production
 deny contains msg if {
     input.environment == "production"
-    input.jwt_secret == "super-secure-dev-secret-key-12345"  # pragma: allowlist secret
+    input.jwt_secret == "super-secure-dev-secret-key-123456789012345678901234"  # pragma: allowlist secret
     msg := "JWT_SECRET must not use the default development value in production"
 }
 

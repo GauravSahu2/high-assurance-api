@@ -47,7 +47,7 @@ def test_login_payload_claims_kill_mutants(client):
     token = res.get_json()["token"]
 
     # Decode it using the exact secret
-    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
+    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
     payload = jwt.decode(token, secret, algorithms=["HS256"])
 
     # 🔪 Kill Mutant #5 (role -> ROLE)
@@ -69,7 +69,7 @@ def test_jwt_strict_time_boundaries(client):
 
     res = client.post("/login", json={"username": "admin", "password": "password123"})
     token = res.get_json()["token"]
-    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
+    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
 
     # Disable verification to inspect raw mathematical claims
     payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
@@ -88,7 +88,7 @@ def test_jwt_iat_is_utc(client):
 
     res = client.post("/login", json={"username": "admin", "password": "password123"})
     token = res.get_json()["token"]
-    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
+    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
     payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
 
     now_utc = datetime.now(UTC).timestamp()
@@ -101,7 +101,7 @@ def test_jwt_encode_explicit_algorithm():
 
     from main import generate_jwt
 
-    with patch("security.jwt.encode") as mock_encode:
+    with patch("auth.pyjwt.encode") as mock_encode:
         generate_jwt("admin")
         _, kwargs = mock_encode.call_args
         assert kwargs.get("algorithm") == "HS256", "Mutant survived: algorithm parameter was stripped!"
@@ -131,7 +131,7 @@ def test_jwt_regular_user_role():
     # Call the function directly with a non-admin username
     token = generate_jwt("user_1")
 
-    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
+    secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
     payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
 
     assert payload["role"] == "user", "Mutant survived: Non-admin role was tampered with!"
@@ -154,7 +154,7 @@ def test_jwt_absolute_time_strictness():
     try:
         # 2. Generate the token directly
         token = generate_jwt("admin")
-        secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-12345")
+        secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
         payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
 
         # 3. 🔪 Kill Mutant 16 (Strict 900s Delta)

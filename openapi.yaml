@@ -1,8 +1,10 @@
 openapi: 3.0.3
 info:
   title: High-Assurance API
-  version: 1.0.0
-  description: Multi-route API with Security, Outbox Logic, and Full Testing Suite.
+  version: 2.0.0
+  description: |
+    A property-tested, compliance-grade financial API with 20-tier defense-in-depth
+    testing, OWASP ZAP DAST validation, and FDA 21 CFR Part 11 audit trails.
 
 servers:
   - url: http://localhost:5000
@@ -15,68 +17,58 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
 paths:
   /health:
     get:
-      summary: Health check
+      summary: Health check — verifies Redis + DB connectivity
+      operationId: healthCheck
       security: []
       responses:
         '200':
-          description: OK
+          description: All systems operational
         '503':
-          description: Service degraded
+          description: Service degraded (infrastructure unreachable)
 
   /login:
     post:
-      summary: User Login (Get Token)
+      summary: Authenticate and receive a JWT token
+      operationId: login
       security: []
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
               type: object
+              required: [username, password]
               properties:
                 username:
                   type: string
+                  minLength: 1
                 password:
                   type: string
+                  minLength: 1
       responses:
         '200':
-          description: JWT Issued
+          description: JWT issued successfully
         '400':
-          description: Bad request
+          description: Bad request — missing or invalid payload
         '401':
           description: Invalid credentials
         '429':
-          description: Rate limited
-
-  /upload-dataset:
-    post:
-      summary: Async Dataset Upload
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        '202':
-          description: Accepted for processing
-        '400':
-          description: Bad request
-        '401':
-          description: Unauthorized
-        '422':
-          description: Validation failed
+          description: Rate limited — too many failed attempts
 
   /transfer:
     post:
-      summary: Secure Fund Transfer (Outbox Pattern)
+      summary: Execute a fund transfer with idempotency and outbox audit
+      operationId: transfer
       security:
         - bearerAuth: []
       requestBody:
@@ -89,20 +81,94 @@ paths:
               properties:
                 to_user:
                   type: string
-                  example: "senior_engineer"
+                  minLength: 1
+                  example: "user_2"
                 amount:
                   type: number
-                  example: 5000
+                  minimum: 0.000001
+                  maximum: 1000.0
+                  example: 50.00
       responses:
-        '201':
-          description: Transaction Recorded in Outbox
+        '200':
+          description: Transfer executed successfully
         '400':
-          description: Bad request
+          description: Bad request — invalid amount, self-transfer, or insufficient funds
         '401':
-          description: Unauthorized
+          description: Unauthorized — missing or invalid token
         '404':
           description: Account not found
         '409':
-          description: Duplicate transaction
+          description: Duplicate transaction (idempotency key replay)
+        '500':
+          description: Transaction failed
+
+  /upload-dataset:
+    post:
+      summary: Upload and validate a CSV dataset (async processing)
+      operationId: uploadDataset
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Accepted for processing
+        '400':
+          description: Bad request — no file, empty, or wrong format
+        '401':
+          description: Unauthorized
         '422':
-          description: Validation failed
+          description: CSV schema validation failed
+
+  /api/users/{user_id}:
+    get:
+      summary: Get user profile (BOLA-protected)
+      operationId: getUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden — BOLA protection
+        '404':
+          description: User not found
+
+  /api/accounts/{user_id}/balance:
+    get:
+      summary: Get account balance (BOLA-protected)
+      operationId: getBalance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account balance
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden — BOLA protection
+        '404':
+          description: Account not found

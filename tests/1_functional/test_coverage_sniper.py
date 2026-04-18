@@ -15,7 +15,7 @@ def sniper_client():
 def test_hundred_percent_coverage(sniper_client):
     verify_jwt("Malformed 123")
     verify_jwt(None)
-    with patch("main.random.random", return_value=0):
+    with patch("routes.health_routes.random.random", return_value=0):
         sniper_client.get("/health")
     sniper_client.get("/health", headers={"Origin": "https://trusted-bank.com"})
     sniper_client.get("/openapi.yaml")

@@ -1,7 +1,7 @@
 import os
 
 os.environ.setdefault("TEST_MODE", "true")
-os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-12345")
+os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
 
 
 def pytest_sessionfinish(session, exitstatus):

@@ -2,7 +2,7 @@
 set -e
 
 export TEST_MODE="true"
-export JWT_SECRET="super-secure-dev-secret-key-12345"
+export JWT_SECRET="super-secure-dev-secret-key-123456789012345678901234"
 export PYTHONPATH=src
 
 echo "📄 Copying schema into mutants layout..."

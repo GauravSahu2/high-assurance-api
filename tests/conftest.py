@@ -6,10 +6,26 @@ import pytest
 from hypothesis import settings, HealthCheck
 
 os.environ.setdefault("TEST_MODE", "true")
-os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-12345")
+os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
 
 from main import app as flask_app
 import main as _main
+
+# ── Suppress OTel teardown noise ──────────────────────────────────────────────
+# The ConsoleSpanExporter writes to stdout which is closed during pytest
+# teardown, causing a harmless but noisy ValueError. Shut it down cleanly.
+import atexit
+from opentelemetry import trace as _otel_trace
+
+def _shutdown_otel():
+    provider = _otel_trace.get_tracer_provider()
+    if hasattr(provider, "shutdown"):
+        try:
+            provider.shutdown()
+        except Exception:
+            pass
+
+atexit.register(_shutdown_otel)
 
 # Register profiles for your two chosen loops
 settings.register_profile("thorough", max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])

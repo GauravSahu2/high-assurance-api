@@ -1,0 +1,192 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "🔴 API Error Rate (SLO: < 0.1%)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{status=~\"5..\"}[5m])) / sum(rate(flask_http_request_total[5m])) * 100",
+          "legendFormat": "Error Rate %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "red", "value": 0.1 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "title": "📊 Request Rate (RPS)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 10, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total[1m]))",
+          "legendFormat": "Total RPS"
+        },
+        {
+          "expr": "sum(rate(flask_http_request_total{status=~\"2..\"}[1m]))",
+          "legendFormat": "2xx RPS"
+        },
+        {
+          "expr": "sum(rate(flask_http_request_total{status=~\"4..\"}[1m]))",
+          "legendFormat": "4xx RPS"
+        },
+        {
+          "expr": "sum(rate(flask_http_request_total{status=~\"5..\"}[1m]))",
+          "legendFormat": "5xx RPS"
+        }
+      ]
+    },
+    {
+      "title": "⏱️ Transfer Latency p95 (SLO: < 500ms)",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{endpoint=\"/transfer\"}[5m])) * 1000",
+          "legendFormat": "p95 (ms)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 300 },
+              { "color": "red", "value": 500 }
+            ]
+          },
+          "unit": "ms",
+          "min": 0,
+          "max": 1000
+        }
+      }
+    },
+    {
+      "title": "🎯 Error Budget Remaining (30-day window)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "100 - ((sum(increase(flask_http_request_total{status=~\"5..\"}[30d])) / sum(increase(flask_http_request_total[30d]))) / 0.001 * 100)",
+          "legendFormat": "Budget %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 20 },
+              { "color": "green", "value": 50 }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "📈 Latency Distribution by Endpoint",
+      "type": "heatmap",
+      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 6 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_request_duration_seconds_bucket[5m])) by (le, endpoint)",
+          "legendFormat": "{{endpoint}} (≤{{le}}s)",
+          "format": "heatmap"
+        }
+      ]
+    },
+    {
+      "title": "🔐 Authentication Failures",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{endpoint=\"/login\",status=\"401\"}[5m]))",
+          "legendFormat": "401 Unauthorized"
+        },
+        {
+          "expr": "sum(rate(flask_http_request_total{endpoint=\"/login\",status=\"429\"}[5m]))",
+          "legendFormat": "429 Rate Limited"
+        }
+      ]
+    },
+    {
+      "title": "🏥 Health Check Status",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{endpoint=\"/health\",status=\"200\"}[5m])) / sum(rate(flask_http_request_total{endpoint=\"/health\"}[5m])) * 100",
+          "legendFormat": "Health %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 99 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    }
+  ],
+  "alert_rules": [
+    {
+      "name": "HighErrorRate",
+      "condition": "sum(rate(flask_http_request_total{status=~\"5..\"}[5m])) / sum(rate(flask_http_request_total[5m])) > 0.01",
+      "for": "5m",
+      "severity": "critical",
+      "summary": "API error rate exceeds 1% SLO threshold"
+    },
+    {
+      "name": "HighLatency",
+      "condition": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{endpoint=\"/transfer\"}[5m])) > 0.5",
+      "for": "5m",
+      "severity": "warning",
+      "summary": "Transfer p95 latency exceeds 500ms SLO threshold"
+    },
+    {
+      "name": "HealthCheckDegraded",
+      "condition": "sum(rate(flask_http_request_total{endpoint=\"/health\",status=\"503\"}[1m])) > 0",
+      "for": "1m",
+      "severity": "critical",
+      "summary": "Health check returning 503 — infrastructure degraded"
+    },
+    {
+      "name": "BruteForceDetected",
+      "condition": "sum(rate(flask_http_request_total{endpoint=\"/login\",status=\"429\"}[5m])) > 0.1",
+      "for": "2m",
+      "severity": "warning",
+      "summary": "Brute-force login attempts triggering rate limiting"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["high-assurance", "slo", "fintech"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "High-Assurance API — SLO Dashboard",
+  "uid": "hsa-slo-dashboard"
+}

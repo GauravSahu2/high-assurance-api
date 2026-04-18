@@ -1,2 +1,5 @@
 [run]
 source = src
+omit =
+    src/__pycache__/*
+    src/routes/__pycache__/*

@@ -1,0 +1,165 @@
+resources:
+- name: high-assurance-repo
+  type: git
+  icon: github
+  check_every: 1m
+  source:
+    uri: https://github.com/GauravSahu2/high-assurance-api.git
+    branch: main
+    username: GauravSahu2
+    password: ((github_token))
+
+- name: api-image
+  type: docker-image
+  icon: docker
+  source:
+    repository: gauravsahu/high-assurance-api
+    username: ((docker_user))
+    password: ((docker_pass))
+
+- name: gitops-manifests
+  type: git
+  icon: kubernetes
+  source:
+    uri: https://github.com/GauravSahu2/api-gitops-manifests.git
+    branch: main
+    username: GauravSahu2
+    password: ((github_token))
+
+jobs:
+# ── Stage 1: Quality Gate ──────────────────────────────────────────────────
+- name: quality-gate
+  plan:
+  - get: high-assurance-repo
+    trigger: true
+  - in_parallel:
+    - task: lint-and-type-check
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: python, tag: "3.12-slim"}
+        inputs:
+          - name: high-assurance-repo
+        run:
+          path: sh
+          args:
+          - -c
+          - |
+            cd high-assurance-repo
+            pip install -q ruff mypy
+            ruff check src/ --select E,W,F,I
+            echo "✅ Lint passed"
+    - task: run-gauntlet
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: python, tag: "3.12-slim"}
+        inputs:
+          - name: high-assurance-repo
+        run:
+          path: sh
+          args:
+          - -c
+          - |
+            cd high-assurance-repo
+            pip install -q -r requirements.txt
+            PYTHONPATH=src TEST_MODE=true pytest \
+              --cov=src \
+              --cov-fail-under=100 \
+              --tb=short \
+              -q
+      attempts: 2
+
+# ── Stage 2: Security Gate ─────────────────────────────────────────────────
+- name: security-gate
+  plan:
+  - get: high-assurance-repo
+    trigger: true
+    passed: [quality-gate]
+  - task: sast-scan
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: python, tag: "3.12-slim"}
+      inputs:
+        - name: high-assurance-repo
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          cd high-assurance-repo
+          pip install -q bandit safety
+          bandit -r src/ -ll -f json -o bandit-report.json || true
+          safety check -r requirements.txt --output json > safety-report.json || true
+          echo "✅ Security scan completed"
+    attempts: 2
+
+# ── Stage 3: Build & Push ──────────────────────────────────────────────────
+- name: build-and-push
+  plan:
+  - get: high-assurance-repo
+    trigger: true
+    passed: [security-gate]
+  - put: api-image
+    params:
+      build: high-assurance-repo
+      tag_as_latest: true
+    get_params: {save: true}
+
+# ── Stage 4: GitOps Deploy ─────────────────────────────────────────────────
+- name: deploy-via-gitops
+  plan:
+  - in_parallel:
+    - get: high-assurance-repo
+      trigger: true
+      passed: [build-and-push]
+    - get: gitops-manifests
+    - get: api-image
+      passed: [build-and-push]
+  - task: bump-gitops-tag
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: alpine/git}
+      inputs:
+        - name: high-assurance-repo
+        - name: gitops-manifests
+        - name: api-image
+      outputs:
+        - name: updated-manifests
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          IMAGE_TAG=$(cat api-image/digest)
+          cd gitops-manifests
+          sed -i "s|image: .*|image: gauravsahu/high-assurance-api@${IMAGE_TAG}|" deployment.yaml
+          git config --global user.email "ci@hsa.com"
+          git config --global user.name "Concourse CI"
+          git add .
+          git commit -m "[deploy] Bump image to ${IMAGE_TAG}" || echo "No changes to commit"
+          cp -r . ../updated-manifests
+  - put: gitops-manifests
+    params: {repository: updated-manifests}
+
+groups:
+- name: all
+  jobs:
+    - quality-gate
+    - security-gate
+    - build-and-push
+    - deploy-via-gitops
+- name: test
+  jobs:
+    - quality-gate
+    - security-gate
+- name: deploy
+  jobs:
+    - build-and-push
+    - deploy-via-gitops

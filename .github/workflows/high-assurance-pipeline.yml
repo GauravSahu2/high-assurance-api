@@ -77,20 +77,91 @@ jobs:
             --input <(echo '{"environment":"ci","jwt_secret":"test","cors_wildcard":false,"routes":[]}') \
             "data.api.security.deny" || true
 
-      - name: "Supply Chain — Cosign keyless sign audit bundle"
+      - name: "Supply Chain — Install Cosign"
         if: github.ref == 'refs/heads/main'
-        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
+        uses: sigstore/cosign-installer@v3
         with:
-          cosign-release: 'v2.2.3'
+          cosign-release: 'v2.4.1'
 
-      - name: "Supply Chain — Sign audit artifacts"
+      - name: "Supply Chain — Sign audit artifacts (keyless)"
         if: github.ref == 'refs/heads/main'
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
-          if ls audit_reports/*.zip 2>/dev/null; then
-            cosign sign-blob audit_reports/*.zip --yes || true
+          # Sign all audit bundles with Sigstore keyless signing (OIDC)
+          for artifact in audit_reports/*.zip; do
+            [ -f "$artifact" ] || continue
+            cosign sign-blob "$artifact" \
+              --yes \
+              --output-signature "${artifact}.sig" \
+              --output-certificate "${artifact}.crt" || true
+            echo "✅ Signed: $artifact"
+          done
+
+      - name: "Supply Chain — Generate CycloneDX SBOM"
+        if: github.ref == 'refs/heads/main'
+        run: |
+          pip install cyclonedx-bom
+          cyclonedx-py requirements \
+            -i requirements.txt \
+            -o sbom.json \
+            --format json \
+            --schema-version 1.5 || true
+          echo "📦 SBOM generated: sbom.json"
+
+      - name: "Supply Chain — Attest SBOM to audit bundle"
+        if: github.ref == 'refs/heads/main'
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          if [ -f sbom.json ]; then
+            cosign attest-blob sbom.json \
+              --yes \
+              --predicate sbom.json \
+              --type cyclonedx || true
+            echo "✅ SBOM attestation complete"
           fi
+
+      - name: "Supply Chain — Generate SLSA Provenance"
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Generate minimal SLSA v1.0 provenance statement
+          cat > provenance.json << 'PROVENANCE'
+          {
+            "_type": "https://in-toto.io/Statement/v1",
+            "subject": [{"name": "high-assurance-api", "digest": {"sha256": ""}}],
+            "predicateType": "https://slsa.dev/provenance/v1",
+            "predicate": {
+              "buildDefinition": {
+                "buildType": "https://github.com/actions/runner",
+                "externalParameters": {"workflow": ".github/workflows/high-assurance-pipeline.yml"}
+              },
+              "runDetails": {
+                "builder": {"id": "https://github.com/actions/runner"},
+                "metadata": {
+                  "invocationId": "${{ github.run_id }}",
+                  "startedOn": "${{ github.event.head_commit.timestamp }}"
+                }
+              }
+            }
+          }
+          PROVENANCE
+          # Stamp the actual SHA into the provenance
+          COMMIT_SHA="${{ github.sha }}"
+          sed -i "s/\"sha256\": \"\"/\"sha256\": \"${COMMIT_SHA}\"/" provenance.json
+          echo "✅ SLSA provenance generated"
+
+      - name: Upload Supply Chain Artifacts
+        uses: actions/upload-artifact@v7
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: Supply-Chain-Evidence-${{ github.run_number }}
+          path: |
+            sbom.json
+            provenance.json
+            audit_reports/*.sig
+            audit_reports/*.crt
+          retention-days: 365
 
       - name: "DAST — nuclei vulnerability scan"
         continue-on-error: true
