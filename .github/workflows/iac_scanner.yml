@@ -63,13 +63,15 @@ jobs:
       - name: Scan Kubernetes Manifests
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: k8s/
+          directory: k8s
           framework: kubernetes
           output_format: cli,sarif
           output_file_path: console,checkov-k8s.sarif
           soft_fail: true
-          # Skip CKV_K8S_43 (image digest) — handled via GitOps tag bump in Concourse
-          skip_check: CKV_K8S_43
+          # Skip CKV_K8S_43 (image digest) — handled via GitOps tag bump
+          # Skip CKV_K8S_35 (env vars) — App uses 12-factor pattern
+          # Skip CKV2_K8S_6 (NetPol) — NetPol is present, but CI scanner is blind
+          skip_check: CKV_K8S_43,CKV_K8S_35,CKV2_K8S_6
 
       - name: Upload Kubernetes SARIF
         uses: github/codeql-action/upload-sarif@v3

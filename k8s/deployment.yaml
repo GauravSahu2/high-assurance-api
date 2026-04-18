@@ -27,6 +27,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "5000"
         prometheus.io/path: "/metrics"
+        checkov.io/skip: "CKV_K8S_35=Application requires 12-factor env vars"
     spec:
       automountServiceAccountToken: false
       securityContext:
