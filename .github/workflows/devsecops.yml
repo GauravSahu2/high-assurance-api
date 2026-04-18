@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
 
     - name: Setup Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
 
@@ -38,7 +38,7 @@ jobs:
         ./run_all_20_layers.sh
 
     - name: Upload ZAP Report
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       # Always attempt upload — ZAP step uses || true so it won't block,
       # but the report may not exist if Docker is unavailable.
       if: always()

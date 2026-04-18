@@ -4,7 +4,7 @@ metadata:
   name: high-assurance-api
   namespace: high-assurance
   annotations:
-    checkov.io/skip: CKV2_K8S_6=Network policy managed globally by service mesh
+    checkov.io/skip: "CKV_K8S_35=Application requires 12-factor env vars"
   labels:
     app: high-assurance-api
     tier: backend
@@ -27,7 +27,6 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "5000"
         prometheus.io/path: "/metrics"
-        checkov.io/skip: CKV_K8S_35=12-factor env vars injected via secrets
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -130,3 +129,30 @@ spec:
   selector:
     matchLabels:
       app: high-assurance-api
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: high-assurance-api-netpol
+  namespace: high-assurance
+spec:
+  podSelector:
+    matchLabels:
+      app: high-assurance-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            tier: frontend
+      ports:
+        - protocol: TCP
+          port: 5000
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6379
