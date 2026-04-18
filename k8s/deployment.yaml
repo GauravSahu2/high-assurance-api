@@ -38,7 +38,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: api
-          image: ghcr.io/GauravSahu2/high-assurance-api:229733e
+          image: ghcr.io/GauravSahu2/high-assurance-api:81de515
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
