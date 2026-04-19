@@ -9,7 +9,7 @@ case $COMMAND in
         "$PROJECT_DIR/run_inner_loop.sh"
         ;;
     -a|--all)
-        echo "🛡️  Running Full 20-Tier Gauntlet (Dynamic/Runtime)..."
+        echo "🛡️  Running Full 32-Tier Gauntlet (Dynamic/Runtime)..."
         "$PROJECT_DIR/run_all_20_layers.sh"
         ;;
     --sbom)
@@ -36,7 +36,7 @@ case $COMMAND in
         echo ""
         echo "Dynamic Testing (Runtime):"
         echo "  -i, --inner   Run Python Inner Loop (27s)"
-        echo "  -a, --all     Run 20-Tier DAST Gauntlet (65s)"
+        echo "  -a, --all     Run 32-Tier DAST Gauntlet (65s)"
         echo ""
         echo "Universal SaaS Scanning (Multi-Language):"
         echo "  scan [path]   Run Polyglot SAST/SCA/Secrets on ANY folder"

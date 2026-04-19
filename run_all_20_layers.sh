@@ -21,7 +21,7 @@ fi
 echo -e "\n🔥 PHASE 2: DYNAMIC GAUNTLET"
 echo "------------------------------------------------------------"
 
-export PYTHONPATH=src
+export PYTHONPATH=.:src
 export TEST_MODE="true"
 unset API_URL
 
@@ -29,7 +29,7 @@ echo "🧪 Running pytest (Integration/Unit)..."
 pytest -p no:warnings --cov=src -rsno --cov-report=term-missing
 
 echo "🚀 Starting Production Gunicorn Server..."
-TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-123456789012345678901234" gunicorn --workers 2 --threads 4 -b 0.0.0.0:5000 main:app > server.log 2>&1 &
+TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-12345678901234567890123448byteslong" gunicorn --workers 2 --threads 4 -b 0.0.0.0:5000 "main:app" > server.log 2>&1 &
 API_PID=$!
 # Ensure server is killed even if script fails
 trap 'kill "$API_PID" 2>/dev/null || true' EXIT
@@ -61,5 +61,5 @@ echo -e "\n📊 PERFORMANCE METRICS"
 # This ensures we get the "1 passed, 116 skipped" table you want at the end
 pytest -p no:warnings -o addopts="" --benchmark-only 2>/dev/null || true
 
-echo -e "\n✅ 20-Tier Validation Complete."
+echo -e "\n✅ 32-Tier Validation Complete."
 exit 0

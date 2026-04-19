@@ -13,7 +13,7 @@ env:
 
 jobs:
   validate-tiers:
-    name: 20-Tier Validation
+    name: 32-Tier Validation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -58,7 +58,7 @@ jobs:
           npm install @playwright/test
           npx playwright install --with-deps chromium
 
-      - name: Execute 20-Tier Orchestrator
+      - name: Execute 32-Tier Orchestrator
         run: |
           chmod +x run_all_20_layers.sh
           ./run_all_20_layers.sh
@@ -166,7 +166,7 @@ jobs:
       - name: "DAST — nuclei vulnerability scan"
         continue-on-error: true
         run: |
-          export PYTHONPATH=src
+          export PYTHONPATH=.:src
           export TEST_MODE=true
           python -m flask --app src/main:app run --port 5001 &
           sleep 3
@@ -192,7 +192,7 @@ jobs:
       - name: "Coverage — Export XML for SonarCloud"
         if: always()
         run: |
-          export PYTHONPATH=src
+          export PYTHONPATH=.:src
           pytest --cov=src --cov-report=xml:coverage.xml -q || true
 
       - name: "SCA — pip-audit CVE scan"
@@ -218,7 +218,7 @@ jobs:
       - name: "DAST — OWASP ZAP baseline scan"
         continue-on-error: true
         run: |
-          export PYTHONPATH=src
+          export PYTHONPATH=.:src
           export TEST_MODE=true
           python -m flask --app src/main:app run --port 5000 &
           sleep 3

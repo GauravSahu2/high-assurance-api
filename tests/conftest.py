@@ -17,7 +17,7 @@ def mock_infrastructure():
         yield
 
 os.environ.setdefault("TEST_MODE", "true")
-os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
+os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-12345678901234567890123448byteslong")
 
 # ── Suppress OTel teardown noise ──────────────────────────────────────────────
 # The ConsoleSpanExporter writes to stdout which is closed during pytest

@@ -25,7 +25,8 @@ jobs:
 
     - name: Start API
       run: |
-        export PYTHONPATH=src
+        export PYTHONPATH=.:src
+        export JWT_SECRET="super-secure-dev-secret-key-12345678901234567890123448byteslong"
         python src/main.py &
         sleep 10
 
