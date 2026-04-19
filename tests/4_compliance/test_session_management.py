@@ -115,8 +115,8 @@ class TestTokenRevocation:
     def test_tampered_token_rejected(self):
         """CWE-347: Token with invalid signature must be rejected."""
         token = main.generate_jwt("admin", "admin")
-        # Tamper with the last character
-        tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+        # Tamper with characters in the signature to guarantee invalidation
+        tampered = token[:-5] + "XXXXX"
         result = main.verify_jwt(tampered)
         assert result is None, "Tampered token must be rejected"
 

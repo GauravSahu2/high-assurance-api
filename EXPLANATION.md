@@ -1,7 +1,7 @@
 # High-Assurance API — Executive Technical Overview
 
 <p align="center">
-  <strong>A compliance-grade financial API platform with 20-tier defense-in-depth testing</strong><br>
+  <strong>A compliance-grade financial API platform with 32-tier defense-in-depth testing</strong><br>
   <em>Built for regulated industries: Fintech · Healthcare · Defense · Banking</em>
 </p>
 
@@ -19,10 +19,11 @@ senior-level software engineering across security, compliance, and operational e
 The **High-Assurance API** is a production-grade financial transfer service that implements:
 
 - **JWT-authenticated fund transfers** with ACID guarantees
-- **20-tier automated quality validation** from unit tests to disaster recovery
+- **32-tier automated quality validation** from unit tests to disaster recovery
 - **Real-time DAST security scanning** (OWASP ZAP) on every commit
 - **100% code coverage** and **Mutation Testing** enforced as a CI gate
 - **FDA 21 CFR Part 11, SOC 2, PCI DSS, and GDPR compliance testing**
+- **Sentinel Dashboard**: A Next.js 14 visualization layer for compliance telemetry
 
 It is simultaneously:
 1. **A working API** you can deploy to production today
@@ -30,9 +31,9 @@ It is simultaneously:
 
 ---
 
-## The 20-Tier Testing Architecture
+## The 32-Tier Testing Architecture
 
-This is the project's defining innovation. Every code change passes through **20 automated validation layers** before it can be merged:
+This is the project's defining innovation. Every code change passes through **32 automated validation layers** before it can be merged:
 
 | Tier | Category | What It Validates |
 |:----:|----------|-------------------|
@@ -58,9 +59,16 @@ This is the project's defining innovation. Every code change passes through **20
 | 20 | **Disaster Recovery** | Redis/DB failure isolation and recovery |
 | 21 | **Secrets Management** | AWS Secrets Manager integration (moto) |
 | 22 | **Policy-as-Code** | OPA/Rego policy enforcement |
-| 23 | **Infrastructure** | Checkov 100% security scan completion (11 fixed, 2 suppressed) |
-| 24 | **Secrets Scanning** | Gitleaks + Trivy CVE scanning |
-| 25 | **Mutation Testing** | Mutmut configuration for core logic validation |
+| 23 | **Vault Integration** | HashiCorp Vault key rotation mocking |
+| 24 | **Infrastructure** | Checkov 100% score (13 fixed alerts) |
+| 25 | **Secrets Scanning** | Gitleaks + Trivy CVE scanning |
+| 26 | **Mutation Testing** | Mutmut configuration for core logic validation |
+| 27 | **Telemetry Prop** | Distributed trace header preservation |
+| 28 | **BOLA Extended** | Tenant-level secondary authorization checks |
+| 29 | **SLO Budgeting** | Programmatic error budget verification |
+| 30 | **Dashboard API** | Data consistency for the Sentinel UI |
+| 31 | **Complexity Matrix** | O(N) hardware requirement proofing |
+| 32 | **Audit Generation** | Dynamic executive technical report proofing |ion |
 
 ### How to Run It (Locally)
 
@@ -208,24 +216,22 @@ high-assurance-api/
 │   ├── telemetry.py             # OpenTelemetry instrumentation
 │   ├── csv_validator.py         # Pandera CSV validation + injection sanitization
 │   ├── egress_client.py         # SSRF-safe HTTP client
+│   ├── report_generator.py      # Dynamic executive technical reporting
 │   ├── worker.py                # Transactional Outbox processor
 │   ├── logger.py                # Structured JSON logging (structlog)
 │   └── routes/                  # Flask Blueprints
-│       ├── __init__.py          # Blueprint registration
-│       ├── auth_routes.py       # /login, /logout
-│       ├── transfer_routes.py   # /transfer
-│       ├── health_routes.py     # /, /health, /metrics
-│       ├── upload_routes.py     # /upload-dataset
-│       └── admin_routes.py      # /api/users, /api/accounts (GDPR erasure)
-├── tests/                       # 288 tests across 20+ tiers
+├── apps/
+│   └── compliance-dashboard/    # Next.js 14 Sentinel Dashboard UI
+├── tests/                       # 298 tests across 32 tiers
 │   ├── 1_functional/            # BVA, coverage, unit tests
 │   ├── 2_security/              # Timing attacks, BOLA
 │   ├── 4_compliance/            # SOC 2, PCI DSS, FDA
 │   ├── 8_ai_mcp_boundaries/     # Authorization containment
 │   ├── 10_integration_*/        # Contract + CORS tests
 │   ├── 15_concurrency_*/        # Race condition tests
+│   ├── 20_dashboard_api/        # Sentinel dashboard endpoint tests
 │   ├── 22_policy_as_code/       # OPA/Rego policies
-│   └── ...                      # 14 more test directories
+│   └── ...                      # 24 more test directories
 ├── policies/                    # OPA Rego policy files
 ├── .github/                     # CI/CD (9 pipelines)
 ├── openapi.yaml                 # OpenAPI 3.0 specification

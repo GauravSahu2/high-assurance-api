@@ -19,6 +19,13 @@ def test_worker_processes_and_deletes_events():
     remaining = db.query(OutboxEvent).count()
     assert remaining == 0
 
+def test_worker_handles_connection_error():
+    """Test that the worker handles connection failures gracefully (Covering except block)."""
+    with patch("pika.BlockingConnection") as mock_conn:
+        mock_conn.side_effect = Exception("RabbitMQ Unreachable")
+        # should not raise exception, just log it
+        process_outbox()
+
 def test_worker_handles_exception():
     # Simulate a catastrophic database failure during processing
     with patch("worker.SessionLocal") as mock_session:

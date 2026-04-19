@@ -1,0 +1,27 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: high-assurance
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: api-ingress
+  namespace: high-assurance
+spec:
+  selector:
+    matchLabels:
+      app: api
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces: ["istio-system"]
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+        paths: ["/health", "/transfer", "/login"]

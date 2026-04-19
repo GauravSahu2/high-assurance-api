@@ -17,6 +17,7 @@ from routes.auth_routes import auth_bp
 from routes.health_routes import health_bp
 from routes.transfer_routes import transfer_bp
 from routes.upload_routes import upload_bp
+from routes.dashboard_routes import dashboard_bp
 
 
 def register_blueprints(app: Flask) -> None:
@@ -26,3 +27,4 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(health_bp)
     app.register_blueprint(upload_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(dashboard_bp)

@@ -84,5 +84,47 @@ services:
     depends_on:
       - loki
 
+  falco:
+    image: falcosecurity/falco:latest
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /dev:/host/dev
+      - /proc:/host/proc:ro
+      - /boot:/host/boot:ro
+      - /lib/modules:/host/lib/modules:ro
+      - /usr:/host/usr:ro
+      - ./falco/falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml
+    command: ["/usr/bin/falco", "-r", "/etc/falco/falco_rules.local.yaml"]
+
+  vault:
+    image: hashicorp/vault:latest
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault/config.hcl:/vault/config/config.hcl
+      - vault-data:/vault/file
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+    command: server -config=/vault/config/config.hcl
+    cap_add:
+      - IPC_LOCK
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
+  vault-data:

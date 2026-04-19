@@ -1,10 +1,23 @@
-# 🛡️ High-Assurance API — 20-Tier Quality Architecture
+# 🛡️ High-Assurance API — 32-Tier Quality Architecture
 
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-20%20Tiers%20Passing-success?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/GauravSahu2/high-assurance-api/actions) [![Tests](https://img.shields.io/badge/Tests-288%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Infrastructure](https://img.shields.io/badge/Infrastructure-100%2F100-success?style=for-the-badge&logo=checkov&logoColor=white)](#) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#) [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](#)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-32%20Tiers%20Passing-success?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/GauravSahu2/high-assurance-api/actions) [![Tests](https://img.shields.io/badge/Tests-298%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Infrastructure](https://img.shields.io/badge/Infrastructure-100%2F100-success?style=for-the-badge&logo=checkov&logoColor=white)](#) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#) [![Dashboard](https://img.shields.io/badge/Dashboard-Sentinel%20Active-blue?style=for-the-badge&logo=nextdotjs&logoColor=white)](#)
 
-A property-tested, compliance-grade financial API platform with **288 automated tests**, **100% code coverage**, and a perfect **100/100 Architecture Score**. Designed for strict regulatory environments (Fintech, Healthcare, Banking) — producing cryptographically signed, timestamped FDA-grade audit bundles.
+A property-tested, compliance-grade financial API platform with **298 automated tests**, **100% code coverage**, and a perfect **100/100 Architecture Score**. Designed for strict regulatory environments (Fintech, Healthcare, Banking) — producing cryptographically signed, timestamped FDA-grade audit bundles and visualized via a **Premium Next.js 14 Dashboard**.
 
 > 📖 **For recruiters, CTOs, and VCs:** See [EXPLANATION.md](EXPLANATION.md) for a full technical overview, SaaS positioning, and interview-ready architecture decisions.
+
+---
+
+## The Sentinel Dashboard
+
+The project features a **Project Aegis Sentinel** dashboard built with **Next.js 14**, **Framer Motion**, and **TailwindCSS**. It provides real-time telemetry into the 32-tier gauntlet, resource scaling trajectories (O(N) proofs), and hardening directives.
+
+| Feature | Sentinel Implementation |
+|---------|-------------------------|
+| **Real-time Sync** | Dynamic fetching from High-Assurance API backend |
+| **Scaling Proofs** | Interactive Area charts showing compute/memory linear scale |
+| **Audit Access** | Direct integration for generating executive technical reports |
+| **Hardening Directives** | Proactive system suggestions (Enclaves, Block Express, Mesh) |
 
 ---
 
@@ -14,6 +27,10 @@ A property-tested, compliance-grade financial API platform with **288 automated 
 graph TB
     subgraph Client Layer
         A[Client Request] --> B[Load Balancer / ProxyFix]
+    end
+
+    subgraph User Interface
+        Z[Sentinel Dashboard] --> B
     end
 
     subgraph Application Layer
@@ -27,6 +44,7 @@ graph TB
         F --> I[health_routes.py<br>Health · Metrics · OpenAPI]
         F --> J[upload_routes.py<br>CSV Validation · Schema]
         F --> K[admin_routes.py<br>BOLA-Protected Lookups]
+        F --> DA[dashboard_routes.py<br>Audit Stats · Complexity Matrix]
     end
 
     subgraph Data Layer
@@ -53,15 +71,16 @@ graph TB
     style L fill:#0f3460,stroke:#e94560,color:#fff
     style M fill:#0f3460,stroke:#e94560,color:#fff
     style N fill:#16213e,stroke:#e94560,color:#fff
+    style Z fill:#0d1527,stroke:#3b82f6,color:#fff
 ```
 
 ---
 
-## The 20-Tier Testing Strategy
+## The 32-Tier Testing Strategy
 
 Three phases guarantee correctness, security, and operational resilience:
 
-### Phase 1 — Core Logic & Security (Tiers 1–8)
+### Phase 1 — Core Logic & Security (Tiers 1–12)
 
 | Tier | Category | What It Validates |
 |:---:|---|---|
@@ -73,32 +92,40 @@ Three phases guarantee correctness, security, and operational resilience:
 | 6 | **Database** | ACID rollbacks, state isolation |
 | 7 | **CSV Security** | Pandera schema + injection sanitization |
 | 8 | **Authorization** | BOLA containment, MCP boundaries |
+| 9 | **Secrets Mgmt** | AWS Secrets Manager (moto) |
+| 10 | **Vault Integration** | HashiCorp Vault key rotation mocking |
+| 11 | **BOLA Extended** | Cross-tenant database isolation |
+| 12 | **JWT Revocation** | Blacklist propagation via Redis |
 
-### Phase 2 — Integration & Performance (Tiers 9–15)
-
-| Tier | Category | What It Validates |
-|:---:|---|---|
-| 9 | **Outbox Pattern** | Transactional event publishing |
-| 10 | **Integration** | CORS, contracts, network seams |
-| 11 | **Observability** | Correlation ID, structured logging |
-| 12 | **Rate Limiting** | IP + user brute-force lockout |
-| 13 | **Infra Drift** | AWS config via moto mocks |
-| 14 | **Performance** | Benchmark regression gates |
-| 15 | **Concurrency** | Double-spend prevention |
-
-### Phase 3 — Operational Safeguards (Tiers 16–23)
+### Phase 2 — Integration & Performance (Tiers 13–24)
 
 | Tier | Category | What It Validates |
 |:---:|---|---|
-| 16 | **DB Guards** | Destructive operation protection |
-| 17 | **Two-Person Rule** | CODEOWNERS enforcement |
-| 18 | **DAST** | OWASP ZAP (117 rules scanned) |
-| 19 | **Rollbacks** | Blue/Green canary simulation |
-| 20 | **Disaster Recovery** | Backup integrity, RTO/RPO |
-| 21 | **Secrets Mgmt** | AWS Secrets Manager (moto) |
-| 22 | **Policy-as-Code** | OPA/Rego policy enforcement |
-| 24 | **Infrastructure** | Checkov 100% score (13 alerts resolved) |
-| 25 | **Mutation Testing** | Mutmut coverage validation |
+| 13 | **Outbox Pattern** | Transactional event publishing |
+| 14 | **Integration** | CORS, contracts, network seams |
+| 15 | **Observability** | Correlation ID, structured logging |
+| 16 | **Rate Limiting** | IP + user brute-force lockout |
+| 17 | **Infra Drift** | AWS config via moto mocks |
+| 18 | **Performance** | Benchmark regression gates |
+| 19 | **Concurrency** | Double-spend prevention |
+| 20 | **Dashboard API** | Telemetry endpoint response data |
+| 21 | **Complexity Proof** | O(N) linear compute verification |
+| 22 | **Tracing Prop** | OTEL context propagation checks |
+| 23 | **SLO Budgeting** | Error budget exhaustion alerts |
+| 24 | **Report Delivery** | Dynamic MD report generation |
+
+### Phase 3 — Operational Safeguards (Tiers 25–32)
+
+| Tier | Category | What It Validates |
+|:---:|---|---|
+| 25 | **DB Guards** | Destructive operation protection |
+| 26 | **Two-Person Rule** | CODEOWNERS enforcement |
+| 27 | **DAST** | OWASP ZAP (117 rules scanned) |
+| 28 | **Rollbacks** | Blue/Green canary simulation |
+| 29 | **Disaster Recovery** | Backup integrity, RTO/RPO |
+| 30 | **Policy-as-Code** | OPA/Rego policy enforcement |
+| 31 | **Infrastructure** | Checkov 100% score (13 alerts resolved) |
+| 32 | **Supply Chain** | Mutmut coverage + Trivy CVE scanning |
 
 ---
 
@@ -116,22 +143,13 @@ high-assurance-api/
 │   ├── telemetry.py              # OpenTelemetry distributed tracing
 │   ├── csv_validator.py          # Pandera CSV validation + injection defense
 │   ├── egress_client.py          # SSRF-safe HTTP client
+│   ├── report_generator.py       # Dynamic executive technical reporting
 │   ├── worker.py                 # Transactional Outbox processor
 │   ├── logger.py                 # Structured JSON logging (structlog)
 │   └── routes/                   # Flask Blueprints
-│       ├── auth_routes.py        # /login, /logout
-│       ├── transfer_routes.py    # /transfer (ACID + idempotency + outbox)
-│       ├── health_routes.py      # /, /health, /metrics, /openapi.yaml
-│       ├── upload_routes.py      # /upload-dataset (CSV ingestion)
-│       └── admin_routes.py       # /api/users, /api/accounts (BOLA-protected & GDPR erasure)
-├── tests/                        # 288 tests across 20+ tiers
-│   ├── 1_functional/             # BVA, coverage, unit tests
-│   ├── 2_security/               # Timing attacks, BOLA
-│   ├── 4_compliance/             # SOC 2, PCI DSS, FDA 21 CFR Part 11
-│   ├── 8_ai_mcp_boundaries/      # Authorization containment
-│   ├── 15_concurrency_*/         # Double-spend prevention
-│   ├── 22_policy_as_code/        # OPA/Rego policies
-│   └── ...                       # 14 more test directories
+├── apps/
+│   └── compliance-dashboard/     # Next.js 14 Sentinel Dashboard
+├── tests/                        # 298 tests across 32 tiers
 ├── policies/                     # OPA Rego policy files
 ├── .github/                      # CI/CD (9 pipelines + CODEOWNERS)
 ├── docs/                         # Operational docs, SRE runbooks
@@ -140,7 +158,6 @@ high-assurance-api/
 ├── k8s/                          # Kubernetes Deployment & Probes
 ├── Dockerfile                    # Production container (non-root, slim)
 ├── EXPLANATION.md                # For recruiters, CTOs, VCs
-├── setup.cfg                     # Mutation testing config
 └── hsa                           # CLI tool for running validation tiers
 ```
 

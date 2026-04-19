@@ -12,6 +12,21 @@ case $COMMAND in
         echo "🛡️  Running Full 20-Tier Gauntlet (Dynamic/Runtime)..."
         "$PROJECT_DIR/run_all_20_layers.sh"
         ;;
+    --sbom)
+        echo "📦 Generating Local SBOM (CycloneDX)..."
+        pip install cyclonedx-bom --quiet
+        cyclonedx-py requirements -i "$PROJECT_DIR/requirements.txt" -o "$PROJECT_DIR/sbom.json" --format json
+        echo "✅ SBOM generated: $PROJECT_DIR/sbom.json"
+        ;;
+    dashboard)
+        echo "🎨 Launching High-Assurance Compliance Dashboard..."
+        cd "$PROJECT_DIR/apps/compliance-dashboard"
+        if [ ! -d "node_modules" ]; then
+            echo "📦 Dependencies missing. Running npm install..."
+            npm install
+        fi
+        npm run dev
+        ;;
     scan)
         echo "🧬 Initiating Polyglot Static Scan..."
         "$PROJECT_DIR/hsa-scan.sh" "$TARGET"

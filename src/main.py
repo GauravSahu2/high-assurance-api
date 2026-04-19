@@ -90,7 +90,6 @@ def create_app() -> Flask:
 # ── OpenTelemetry ─────────────────────────────────────────────────────────────
 hsa_tracer = init_telemetry()
 
-
 # ── Redis ─────────────────────────────────────────────────────────────────────
 if TEST_MODE:
     import fakeredis

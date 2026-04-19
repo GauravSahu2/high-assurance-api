@@ -4,7 +4,17 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 import pytest
+import unittest.mock as mock
 from hypothesis import HealthCheck, settings
+
+# ── GLOBAL MOCKS (Infrastructure-as-Code) ───────────────────────────────────
+@pytest.fixture(autouse=True)
+def mock_infrastructure():
+    """Globally mock Vault and RabbitMQ to allow in-memory gauntlet runs."""
+    with mock.patch("pika.BlockingConnection"), \
+         mock.patch("pika.URLParameters"), \
+         mock.patch("hvac.Client"):
+        yield
 
 os.environ.setdefault("TEST_MODE", "true")
 os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")

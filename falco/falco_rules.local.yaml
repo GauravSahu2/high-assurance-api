@@ -1,0 +1,25 @@
+- rule: Shell run in container
+  desc: A shell was spawned in a container with an interactive terminal
+  condition: container and proc.name in (shell_binaries) and proc.tty != 0
+  output: >
+    Shell spawned in container (user=%user.name user_loginuid=%user.loginuid container_id=%container.id container_name=%container.name 
+    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+  priority: WARNING
+  tags: [container, shell, mitre_execution]
+
+- rule: Write below etc
+  desc: an attempt to write to /etc directory
+  condition: >
+    fd.name startswith /etc and evt.type = openwrite and not proc.name in (etc_writers)
+    and container
+  output: "File below /etc opened for writing (user=%user.name command=%proc.cmdline file=%fd.name container_id=%container.id)"
+  priority: CRITICAL
+  tags: [filesystem, mitre_persistence]
+
+- rule: Unexpected outbound connection
+  desc: Detect outbound connections from the API container to non-standard ports
+  condition: >
+    container and container.name = "api" and outbound and not fd.sport in (80, 443, 5432, 6379)
+  output: "Unexpected outbound connection (user=%user.name command=%proc.cmdline connection=%fd.name container_id=%container.id)"
+  priority: WARNING
+  tags: [network, mitre_exfiltration]

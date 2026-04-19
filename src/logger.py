@@ -1,5 +1,5 @@
-
 import structlog
+from src.dlp_processor import dlp_redactor
 
 
 def configure_logger():
@@ -7,6 +7,7 @@ def configure_logger():
         processors=[
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
+            dlp_redactor,  # Redact PII before rendering
             structlog.processors.JSONRenderer() # FAANG standard: Pure JSON
         ],
         logger_factory=structlog.PrintLoggerFactory(),
