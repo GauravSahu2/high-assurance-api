@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+
 def generate_audit_statement(stats=None):
     """Consolidates project metadata and scan results into a downloadable report."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,7 +16,8 @@ def generate_audit_statement(stats=None):
         f.write(f"**Date Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         
         f.write("## 🏗️ System Overview\n")
-        f.write("This report provides a validated attestation of the High-Assurance API security, performance, and compliance posture.\n\n")
+        f.write("This report provides a multi-dimensional analysis of ")
+        f.write("the High-Assurance API security and compliance posture.\n\n")
         
         # Coverage: use stats if provided
         security_total = 0
@@ -23,7 +25,7 @@ def generate_audit_statement(stats=None):
             security_total = sum(stats["security"].values())
         
         f.write("## 🛡️ Security Posture Summary\n")
-        f.write(f"- **32 Automated Validation Tiers**: ✅ PASS\n")
+        f.write("- **32 Automated Validation Tiers**: ✅ PASS\n")
         f.write(f"- **Known Vulnerabilities/Leaks**: {security_total}\n")
         f.write("- **Mutation Testing Coverage**: ✅ >90%\n")
         f.write("- **OWASP ZAP DAST**: ✅ NO CRITICAL/HIGH VULNERS\n\n")

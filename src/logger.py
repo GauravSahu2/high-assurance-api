@@ -1,4 +1,5 @@
 import structlog
+
 from src.dlp_processor import dlp_redactor
 
 

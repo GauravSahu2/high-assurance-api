@@ -1,11 +1,13 @@
+import json
 import os
 import time
-import json
+
 import pika
 
 from database import SessionLocal
 from logger import logger
 from models import OutboxEvent
+
 
 def process_outbox():
     db = SessionLocal()
@@ -49,7 +51,8 @@ def process_outbox():
         logger.error("outbox_worker_error", error=str(e))
         # Ensure connection closes even on logic errors
         try: connection.close()
-        except: pass
+        except Exception:
+            pass
     finally:
         db.close()
 

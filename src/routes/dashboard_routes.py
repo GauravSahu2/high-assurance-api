@@ -1,7 +1,8 @@
-import os
 import json
-import re
+import os
+
 from flask import Blueprint, jsonify, send_file
+
 from src.report_generator import generate_audit_statement
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -14,7 +15,7 @@ def parse_markdown_table(file_path):
     if not os.path.exists(file_path):
         return []
     
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
     
     table_data = []
@@ -26,7 +27,7 @@ def parse_markdown_table(file_path):
                 if "---" not in line:
                     headers = cells
             elif "---" not in line:
-                table_data.append(dict(zip(headers, cells)))
+                table_data.append(dict(zip(headers, cells, strict=False)))
     return table_data
 
 @dashboard_bp.route("/api/dashboard/stats", methods=["GET"])
@@ -48,14 +49,14 @@ def get_dashboard_stats():
     # Parse Gitleaks
     gitleaks_path = os.path.join(HSA_REPORTS_DIR, "gitleaks.json")
     if os.path.exists(gitleaks_path):
-        with open(gitleaks_path, "r") as f:
+        with open(gitleaks_path) as f:
             data = json.load(f)
             stats["security"]["gitleaks"] = len(data) if data else 0
 
     # Parse Semgrep
     semgrep_path = os.path.join(HSA_REPORTS_DIR, "semgrep.json")
     if os.path.exists(semgrep_path):
-        with open(semgrep_path, "r") as f:
+        with open(semgrep_path) as f:
             data = json.load(f)
             stats["security"]["semgrep"] = len(data.get("results", []))
 

@@ -14,10 +14,10 @@ from flask import Flask
 
 from routes.admin_routes import admin_bp
 from routes.auth_routes import auth_bp
+from routes.dashboard_routes import dashboard_bp
 from routes.health_routes import health_bp
 from routes.transfer_routes import transfer_bp
 from routes.upload_routes import upload_bp
-from routes.dashboard_routes import dashboard_bp
 
 
 def register_blueprints(app: Flask) -> None:

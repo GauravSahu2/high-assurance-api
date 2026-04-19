@@ -7,6 +7,7 @@ for production-sensitive values.
 from __future__ import annotations
 
 import os
+
 import hvac
 
 # ── Vault Configuration ──────────────────────────────────────────────────────────
