@@ -6,6 +6,7 @@ on: [push]
 # - OWASP ZAP (DAST)
 # - Nuclei (Vulnerability Scanning)
 # - Bandit (Python SAST)
+# - Semgrep (Polyglot SAST)
 # - Trivy (SCA Dependency Scanning)
 
 jobs:
