@@ -45,6 +45,16 @@ services:
       timeout: 5s
       retries: 3
 
+  dashboard:
+    build:
+      context: ./apps/compliance-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+    depends_on:
+      - api
+
   worker:
     build: .
     command: ["python", "src/worker.py"]
