@@ -31,14 +31,19 @@ from flask_cors import CORS
 from prometheus_client import Counter, Histogram
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Re-export auth utilities for backward compatibility with tests
 from auth import (
+    DUMMY_HASH,
+    USERS,
+    generate_jwt,
+    hash_password as _hp,
     verify_jwt as _verify_jwt_internal,
+    verify_password as _vp,
 )
 from config import ALLOWED_ORIGINS, TEST_MODE
-from database import Base, SessionLocal, engine
+from database import Base, SessionLocal, engine, get_db
 from models import Account
 from routes import register_blueprints
+from routes.transfer_routes import purge_expired_idempotency_keys
 from security import apply_security_headers
 from telemetry import init_telemetry
 
