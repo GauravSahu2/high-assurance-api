@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        # actions/checkout@v4 does not exist — latest stable is v4
-        uses: actions/checkout@v4
+        # actions/checkout@v6 does not exist — latest stable is v4
+        uses: actions/checkout@v6
 
       - name: Install k6
         run: |
