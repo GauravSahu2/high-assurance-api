@@ -46,7 +46,7 @@ jobs:
           skip_check: CKV_DOCKER_2,CKV_DOCKER_3
 
       - name: Upload Dockerfile SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: checkov-dockerfile.sarif
@@ -74,7 +74,7 @@ jobs:
           skip_check: CKV_K8S_43,CKV_K8S_35,CKV2_K8S_6
 
       - name: Upload Kubernetes SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: checkov-k8s.sarif
@@ -99,7 +99,7 @@ jobs:
           soft_fail: true
 
       - name: Upload ArgoCD SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: checkov-argocd.sarif
