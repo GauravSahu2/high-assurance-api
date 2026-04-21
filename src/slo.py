@@ -76,11 +76,17 @@ def check_error_budget_remaining(
     budget_consumed_pct = (error_rate / (1 - slo.target / 100)) * 100
     budget_remaining_pct = max(0, 100 - budget_consumed_pct)
 
+    status = "breached"
+    if budget_remaining_pct > 20:
+        status = "healthy"
+    elif budget_remaining_pct > 0:
+        status = "warning"
+
     return {
         "slo_name": slo.name,
         "slo_target": slo.target,
         "error_rate": round(error_rate * 100, 4),
         "budget_consumed_pct": round(budget_consumed_pct, 2),
         "budget_remaining_pct": round(budget_remaining_pct, 2),
-        "status": ("healthy" if budget_remaining_pct > 20 else "warning" if budget_remaining_pct > 0 else "breached"),
+        "status": status,
     }

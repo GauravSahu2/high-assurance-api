@@ -27,7 +27,7 @@ def _get_redis():
     return main.redis_client
 
 
-@admin_bp.route("/api/users/<user_id>")
+@admin_bp.route("/api/users/<user_id>", methods=["GET"])
 def get_user(user_id: str):
     """Get user profile with BOLA protection.
 
@@ -49,7 +49,7 @@ def get_user(user_id: str):
     return jsonify({"user_id": user_id, "role": USERS[user_id]["role"]})
 
 
-@admin_bp.route("/api/accounts/<user_id>/balance")
+@admin_bp.route("/api/accounts/<user_id>/balance", methods=["GET"])
 def get_balance(user_id: str):
     """Get account balance with BOLA protection.
 

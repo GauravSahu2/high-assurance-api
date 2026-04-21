@@ -43,6 +43,10 @@ def _get_tracer():
     return main.hsa_tracer
 
 
+ERR_SERVICE_DEGRADED = "service temporarily degraded"
+MSG_LOGGED_OUT = "logged out"
+
+
 @auth_bp.route("/login", methods=["POST"])
 def login():
     """Authenticate a user and issue a JWT token."""
@@ -57,7 +61,7 @@ def login():
         if int(redis_client.get(lockout_ip_key) or 0) >= MAX_LOGIN_ATTEMPTS:
             return jsonify({"error": "too many failed attempts"}), 429
     except redis_lib.RedisError:
-        return jsonify({"error": "service temporarily degraded"}), 503
+        return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
 
     with hsa_tracer.start_as_current_span("login.authenticate", attributes={"login.ip": ip}) as span:
         body = request.get_json(silent=True)
@@ -79,7 +83,7 @@ def login():
         if int(redis_client.get(lockout_user_key) or 0) >= MAX_LOGIN_ATTEMPTS:
             return jsonify({"error": "too many failed attempts"}), 429
     except redis_lib.RedisError:
-        return jsonify({"error": "service temporarily degraded"}), 503
+        return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
 
     # Verify credentials (constant-time for non-existent users)
     user = USERS.get(username)
@@ -93,7 +97,7 @@ def login():
             redis_client.incr(lockout_user_key)
             redis_client.expire(lockout_user_key, LOCKOUT_TTL_SECONDS)
         except redis_lib.RedisError:
-            return jsonify({"error": "service temporarily degraded"}), 503
+            return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
         logger.warning("authentication_failed", user_id=username, ip_address=ip)
         return jsonify({"error": "invalid credentials"}), 401
 
@@ -102,7 +106,7 @@ def login():
         redis_client.delete(lockout_ip_key)
         redis_client.delete(lockout_user_key)
     except redis_lib.RedisError:
-        return jsonify({"error": "service temporarily degraded"}), 503
+        return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
 
     token = generate_jwt(username, USERS[username]["role"])
     return jsonify(
@@ -122,11 +126,11 @@ def logout():
 
     raw = extract_bearer_token(request.headers.get("Authorization"))
     if not raw:
-        return jsonify({"status": "logged out"}), 200
+        return jsonify({"status": MSG_LOGGED_OUT}), 200
 
     claims = verify_jwt(raw, redis_client)
     if not claims:
-        return jsonify({"status": "logged out"}), 200
+        return jsonify({"status": MSG_LOGGED_OUT}), 200
 
     jti = claims.get("jti")
     exp = claims.get("exp")
@@ -138,4 +142,4 @@ def logout():
         except redis_lib.RedisError:
             pass
 
-    return jsonify({"status": "logged out"}), 200
+    return jsonify({"status": MSG_LOGGED_OUT}), 200

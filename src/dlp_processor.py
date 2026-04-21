@@ -2,14 +2,14 @@ import re
 
 # Regex patterns for common PII
 EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
-CREDIT_CARD_PATTERN = re.compile(r"\b(?:\d[ -]*?){13,16}\b")
+CREDIT_CARD_PATTERN = re.compile(r"\b(?:\d[ -]*){13,16}\b")
 SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 AUTH_HEADER_PATTERN = re.compile(
-    r"(?i)(Authorization|api-key):\s*(Bearer\s+)?[A-Za-z0-9-_=]+\." r"[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
+    r"(?i)(Authorization|api-key):\s*(Bearer\s+)?[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
 )
 
 
-def dlp_redactor(logger, method_name, event_dict):
+def dlp_redactor(_, __, event_dict):
     """
     DLP (Data Loss Prevention) processor for structlog.
     Redacts PII patterns from all values in the event_dict.

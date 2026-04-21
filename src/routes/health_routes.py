@@ -29,13 +29,13 @@ def _get_redis():
     return main.redis_client
 
 
-@health_bp.route("/")
+@health_bp.route("/", methods=["GET"])
 def home():
     """API liveness probe — returns immediately."""
     return jsonify({"message": "API running"})
 
 
-@health_bp.route("/openapi.yaml")
+@health_bp.route("/openapi.yaml", methods=["GET"])
 def openapi_yaml():
     """Serve the OpenAPI specification file."""
     try:
@@ -43,7 +43,7 @@ def openapi_yaml():
         with open(spec_path) as f:
             return f.read(), 200, {"Content-Type": "text/yaml"}
     except FileNotFoundError:
-        return jsonify({"error": "spec not found"}), 404
+        return jsonify({"error": "spec not found"}), 404, {"Content-Type": "application/json"}
 
 
 @health_bp.route("/health", methods=["GET", "OPTIONS"])
@@ -96,7 +96,7 @@ def health():
     return jsonify({"status": "ok", "timestamp": time.time()})
 
 
-@health_bp.route("/metrics")
+@health_bp.route("/metrics", methods=["GET"])
 def metrics_endpoint():
     """Prometheus metrics scrape endpoint."""
     return generate_latest(), 200, {"Content-Type": CONTENT_TYPE_LATEST}
