@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import redis as redis_lib
 import structlog
-from flask import Flask, g, request
+from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from prometheus_client import Counter, Histogram
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -227,9 +227,6 @@ def method_not_allowed(e):
     res.headers["Allow"] = ", ".join(sorted(allowed)) if allowed else "GET, OPTIONS, POST"
     return res
 
-
-# ── Needed for jsonify in error handlers ──────────────────────────────────────
-from flask import jsonify  # pragma: no cover
 
 # ── Global App Instance ───────────────────────────────────────────────────────
 # Instantiated for Gunicorn and tests
