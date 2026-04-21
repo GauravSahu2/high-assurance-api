@@ -26,7 +26,7 @@ export TEST_MODE="true"
 unset API_URL
 
 echo "🧪 Running pytest (Integration/Unit)..."
-pytest -p no:warnings --cov=src -rsno --cov-report=term-missing
+pytest -p no:warnings --cov=src -rsno --cov-report=term-missing --cov-report=xml
 
 echo "🚀 Starting Production Gunicorn Server..."
 TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-12345678901234567890123448byteslong" gunicorn --workers 2 --threads 4 -b 0.0.0.0:5000 "main:app" > server.log 2>&1 &
