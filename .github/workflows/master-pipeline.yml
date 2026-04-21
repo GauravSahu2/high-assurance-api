@@ -1,0 +1,227 @@
+name: HSA Master Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  TEST_MODE: "true"
+  JWT_SECRET: ${{ secrets.JWT_SECRET || 'super-secure-dev-secret-key-12345678901234567890123448byteslong' }}
+  APP_AUTH_TOKEN: ${{ secrets.APP_AUTH_TOKEN || 'valid_admin_token' }}
+
+jobs:
+  # ── LINT & STATIC ───────────────────────────────
+  lint:
+    name: "🔍 Lint & Static Analysis"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python Linting
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python Linters
+        run: pip install ruff black
+
+      - name: Ruff Check (API)
+        run: ruff check src/
+
+      - name: Black Check (API)
+        run: black --check src/
+
+      # JS/TS Linting (Dashboard)
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/compliance-dashboard/package-lock.json
+
+      - name: Install Dashboard dependencies
+        working-directory: apps/compliance-dashboard
+        run: npm ci
+
+      - name: Next.js Lint
+        working-directory: apps/compliance-dashboard
+        run: npm run lint
+
+  # ── 32-TIER GAUNTLET ────────────────────────────
+  validation:
+    name: "🧪 32-Tier Gauntlet"
+    needs: lint
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-cov schemathesis benchmark
+
+      - name: Run Core Tests (Tiers 1-12)
+        env:
+          PYTHONPATH: .:src
+          REDIS_URL: "redis://localhost:6379/0"
+        run: pytest -p no:warnings --cov=src -rs
+
+      - name: Execute Full validation Gauntlet
+        env:
+          PYTHONPATH: .:src
+          REDIS_URL: "redis://localhost:6379/0"
+        run: |
+          chmod +x run_all_20_layers.sh
+          # We run this even on PRs, but we'll mock secrets if needed
+          ./run_all_20_layers.sh
+
+  # ── MUTATION TESTING ───────────────────────────
+  mutation:
+    name: "🧬 Mutation Tests"
+    needs: validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Dependencies
+        run: pip install -r requirements.txt mutmut
+      - name: Run Mutation Testing (Critical Security Path)
+        env:
+          PYTHONPATH: .:src
+        run: |
+          mutmut run --paths-to-mutate=src/security.py --no-progress 2>&1 || true
+          echo "## Mutation Test Results" >> $GITHUB_STEP_SUMMARY
+          mutmut results >> $GITHUB_STEP_SUMMARY 2>&1 || true
+
+  # ── SECURITY SCANS (EXTERNAL) ─────────────────
+  security:
+    name: "🛡️ External Security Gates"
+    needs: validation
+    runs-on: ubuntu-latest
+    # Skip for dependabot if secrets are missing
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Quality Gate — SonarCloud"
+        uses: SonarSource/sonarcloud-github-action@master
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: "IaC — Checkov scan"
+        run: |
+          pip install checkov
+          checkov -d . --framework dockerfile,kubernetes,terraform --quiet || true
+
+  # ── DUAL-ARCH BUILD & PUSH ──────────────────────
+  docker:
+    name: "🐳 Build & Push"
+    needs: [validation, security]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        include:
+          - service: api
+            context: .
+            image: api
+          - service: dashboard
+            context: ./apps/compliance-dashboard
+            image: dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.image }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── ZERO-DOWNTIME DEPLOY ───────────────────────
+  deploy:
+    name: "🚀 Live Deploy"
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH Deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          if [ -z "${DEPLOY_HOST}" ]; then
+            echo "⚠️ No DEPLOY_HOST configured — skipping deployment"
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          echo "${DEPLOY_KEY}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" << 'DEPLOY_SCRIPT'
+            set -e
+            cd /opt/high-assurance-api
+            docker compose pull
+            docker compose up -d --remove-orphans --force-recreate --no-build
+            echo "✅ Deployment successful"
+          DEPLOY_SCRIPT

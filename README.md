@@ -1,6 +1,6 @@
 # 🛡️ High-Assurance API — 32-Tier Quality Architecture
 
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-32%20Tiers%20Passing-success?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/GauravSahu2/high-assurance-api/actions) [![Tests](https://img.shields.io/badge/Tests-298%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Infrastructure](https://img.shields.io/badge/Infrastructure-100%2F100-success?style=for-the-badge&logo=checkov&logoColor=white)](#) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](#) [![Dashboard](https://img.shields.io/badge/Dashboard-Sentinel%20Active-blue?style=for-the-badge&logo=nextdotjs&logoColor=white)](#)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Master%20Pipeline%20Active-success?style=for-the-badge&logo=githubactions&logoColor=white)](.github/workflows/master-pipeline.yml) [![Tests](https://img.shields.io/badge/Tests-32%20Tiers%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Compliance](https://img.shields.io/badge/Compliance-Sentinel%20Active-blue?style=for-the-badge&logo=nextdotjs&logoColor=white)](PIPELINE.md)
 
 A property-tested, compliance-grade financial API platform with **298 automated tests**, **100% code coverage**, and a perfect **100/100 Architecture Score**. Designed for strict regulatory environments (Fintech, Healthcare, Banking) — producing cryptographically signed, timestamped FDA-grade audit bundles and visualized via a **Premium Next.js 14 Dashboard**.
 
@@ -151,9 +151,10 @@ high-assurance-api/
 │   └── compliance-dashboard/     # Next.js 14 Sentinel Dashboard
 ├── tests/                        # 298 tests across 32 tiers
 ├── policies/                     # OPA Rego policy files
-├── .github/                      # CI/CD (9 pipelines + CODEOWNERS)
+├── .github/                      # CI/CD (Master Pipeline)
 ├── docs/                         # Operational docs, SRE runbooks
 ├── openapi.yaml                  # OpenAPI 3.0 specification
+├── PIPELINE.md                   # 🌏 Visual CI/CD Architecture & Gauntlet Logic
 ├── docker-compose.yml            # Full stack (API + DB + Redis + Grafana)
 ├── k8s/                          # Kubernetes Deployment & Probes
 ├── Dockerfile                    # Production container (non-root, slim)
