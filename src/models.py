@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from database import Base
 from sqlalchemy import JSON, Column, DateTime, Integer, Numeric, String
+
+from database import Base
 
 
 class Account(Base):

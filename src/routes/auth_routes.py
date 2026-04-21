@@ -13,6 +13,8 @@ from __future__ import annotations
 import time
 
 import redis as redis_lib
+from flask import Blueprint, jsonify, request
+
 from auth import (
     DUMMY_HASH,
     USERS,
@@ -22,7 +24,6 @@ from auth import (
     verify_password,
 )
 from config import LOCKOUT_TTL_SECONDS, MAX_LOGIN_ATTEMPTS
-from flask import Blueprint, jsonify, request
 from logger import logger
 
 auth_bp = Blueprint("auth", __name__)

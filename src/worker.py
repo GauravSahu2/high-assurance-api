@@ -3,6 +3,7 @@ import os
 import time
 
 import pika
+
 from database import SessionLocal
 from logger import logger
 from models import OutboxEvent

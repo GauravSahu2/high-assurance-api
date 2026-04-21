@@ -26,6 +26,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import redis as redis_lib
 import structlog
+from flask import Flask, g, request
+from flask_cors import CORS
+from prometheus_client import Counter, Histogram
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Re-export auth utilities for backward compatibility with tests
 from auth import (
@@ -33,14 +37,10 @@ from auth import (
 )
 from config import ALLOWED_ORIGINS, TEST_MODE
 from database import Base, SessionLocal, engine
-from flask import Flask, g, request
-from flask_cors import CORS
 from models import Account
-from prometheus_client import Counter, Histogram
 from routes import register_blueprints
 from security import apply_security_headers
 from telemetry import init_telemetry
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # ── Application Factory ──────────────────────────────────────────────────────

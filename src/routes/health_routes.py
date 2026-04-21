@@ -14,10 +14,11 @@ import os
 import random
 import time
 
-from database import get_db
 from flask import Blueprint, jsonify, request
-from models import Account
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+from database import get_db
+from models import Account
 
 health_bp = Blueprint("health", __name__)
 

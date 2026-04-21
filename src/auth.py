@@ -15,6 +15,7 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt as pyjwt
+
 from config import (
     BCRYPT_ROUNDS_PROD,
     BCRYPT_ROUNDS_TEST,

@@ -14,10 +14,11 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
+from flask import Blueprint, jsonify, request
+
 from auth import extract_bearer_token, verify_jwt
 from config import TRANSFER_MAX, TRANSFER_MIN
 from database import get_db
-from flask import Blueprint, jsonify, request
 from models import Account, IdempotencyKey, OutboxEvent
 
 transfer_bp = Blueprint("transfer", __name__)

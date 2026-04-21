@@ -12,6 +12,7 @@ Each Blueprint handles a single domain concern:
 from __future__ import annotations
 
 from flask import Flask
+
 from routes.admin_routes import admin_bp
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp

@@ -12,11 +12,12 @@ from __future__ import annotations
 
 import os
 
-from config import DEPLOY_ENV
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+
+from config import DEPLOY_ENV
 
 
 def init_telemetry() -> trace.Tracer:

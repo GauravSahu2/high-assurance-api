@@ -13,9 +13,10 @@ from __future__ import annotations
 
 import os
 
+from flask import Blueprint, jsonify, request
+
 from auth import extract_bearer_token, verify_jwt
 from config import MAX_UPLOAD_SIZE_BYTES
-from flask import Blueprint, jsonify, request
 
 upload_bp = Blueprint("upload", __name__)
 
