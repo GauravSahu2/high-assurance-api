@@ -9,6 +9,15 @@ target-version = "py312"
 line-length = 120
 src = ["src", "tests"]
 
+[tool.black]
+line-length = 120
+target-version = ['py312']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
 [tool.ruff.lint]
 select = [
     "E",      # pycodestyle errors
