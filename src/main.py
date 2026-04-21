@@ -24,11 +24,11 @@ import uuid
 # Ensure src/ is on the path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import redis as redis_lib
-import structlog
 from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 from prometheus_client import Counter, Histogram
+import redis as redis_lib
+import structlog
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from auth import (
