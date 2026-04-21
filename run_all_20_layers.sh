@@ -16,6 +16,7 @@ if command -v docker &> /dev/null; then
     docker run --rm -v "$(pwd)":/project -v "$(pwd)/.trivycache:/root/.cache" aquasec/trivy:0.50.1 fs --scanners vuln --severity HIGH,CRITICAL /project/requirements.txt || echo "✅ Dependencies verified."
 
     echo "[>] Enforcing Cyclomatic Complexity (max 25)..."
+    python3 -m ruff --version > /dev/null 2>&1 || pip install ruff > /dev/null 2>&1
     python3 -m ruff check src/ --select C901 || (echo "❌ Complexity threshold exceeded!" && exit 1)
     echo "✅ Complexity within limits."
 else
