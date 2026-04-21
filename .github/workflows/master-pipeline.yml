@@ -52,7 +52,7 @@ jobs:
 
       - name: Install Dashboard dependencies
         working-directory: apps/compliance-dashboard
-        run: npm ci
+        run: npm install
 
       - name: Next.js Lint
         working-directory: apps/compliance-dashboard
