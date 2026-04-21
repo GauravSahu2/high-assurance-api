@@ -35,9 +35,7 @@ def generate_audit_statement(stats=None):
         f.write("TRUST SCORE: 98.4%\n\n")
 
         f.write("## 📈 Performance & Complexity Analysis\n")
-        f.write(
-            "The system has been verified to maintain O(N) linear time and space complexity.\n\n"
-        )
+        f.write("The system has been verified to maintain O(N) linear time and space complexity.\n\n")
 
         f.write("---\n")
         f.write("*Attested by the HSA Automated Orchestrator.*\n")

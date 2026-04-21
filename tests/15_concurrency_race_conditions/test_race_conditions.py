@@ -42,9 +42,7 @@ def test_prevent_double_spend():
         result1 = future1.result()
         result2 = future2.result()
 
-    assert (result1 and not result2) or (
-        not result1 and result2
-    ), "CRITICAL: Double Spend attack succeeded!"
+    assert (result1 and not result2) or (not result1 and result2), "CRITICAL: Double Spend attack succeeded!"
     assert (
         DATABASE["account_123_balance"] == 0
     ), f"CRITICAL: Database corruption! Balance is {DATABASE['account_123_balance']}"
@@ -68,9 +66,7 @@ def test_api_prevents_double_spend_via_idempotency(client, auth_header):
 
     # Second transfer with same idempotency key should be rejected
     res2 = client.post("/transfer", json=payload, headers=headers)
-    assert (
-        res2.status_code == 409
-    ), "CRITICAL: Idempotency key did not prevent duplicate transaction!"
+    assert res2.status_code == 409, "CRITICAL: Idempotency key did not prevent duplicate transaction!"
 
 
 def test_api_prevents_overdraft(client, auth_header):

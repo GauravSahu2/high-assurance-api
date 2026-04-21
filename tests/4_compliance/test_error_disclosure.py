@@ -88,9 +88,7 @@ class TestErrorDisclosure:
 
     def test_transfer_errors_dont_leak_sql(self, client):
         """PCI 6.5.5: SQL errors must never be forwarded to clients."""
-        token = client.post(
-            "/login", json={"username": "admin", "password": "password123"}
-        ).get_json()["token"]
+        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
 
         # Try transferring to non-existent user
         res = client.post(

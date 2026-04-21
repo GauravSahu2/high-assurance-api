@@ -70,9 +70,7 @@ class TestAPIContractStability:
         for path, method in endpoints:
             res = client.open(path, method=method)
             ct = res.headers.get("Content-Type", "")
-            assert (
-                "application/json" in ct
-            ), f"{method} {path} missing JSON content type (got: {ct})"
+            assert "application/json" in ct, f"{method} {path} missing JSON content type (got: {ct})"
 
     def test_unknown_fields_in_request_body_ignored(self, client):
         """Robustness: Extra fields in requests should not cause errors."""

@@ -48,9 +48,7 @@ def validate_and_sanitize_csv(raw_bytes: bytes) -> pd.DataFrame:
     for col in df.columns:
         if col == "amount":
             continue
-        df[col] = df[col].map(
-            lambda x: str(x).lstrip("".join(_INJECTION_PREFIXES)) if pd.notna(x) else x
-        )
+        df[col] = df[col].map(lambda x: str(x).lstrip("".join(_INJECTION_PREFIXES)) if pd.notna(x) else x)
 
     try:
         # Capture the dataframe so amounts are returned as actual floats

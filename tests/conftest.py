@@ -21,9 +21,7 @@ def mock_infrastructure():
 
 
 os.environ.setdefault("TEST_MODE", "true")
-os.environ.setdefault(
-    "JWT_SECRET", "super-secure-dev-secret-key-12345678901234567890123448byteslong"
-)
+os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-12345678901234567890123448byteslong")
 
 # ── Suppress OTel teardown noise ──────────────────────────────────────────────
 # The ConsoleSpanExporter writes to stdout which is closed during pytest
@@ -47,9 +45,7 @@ def _shutdown_otel():
 atexit.register(_shutdown_otel)
 
 # Register profiles for your two chosen loops
-settings.register_profile(
-    "thorough", max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture]
-)
+settings.register_profile("thorough", max_examples=100, suppress_health_check=[HealthCheck.function_scoped_fixture])
 settings.load_profile("thorough")
 
 

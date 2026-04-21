@@ -9,9 +9,7 @@ def test_get_secret_vault_success():
     """Test get_secret when Vault returns a valid value."""
     with patch("hvac.Client") as mock_client:
         mock_instance = mock_client.return_value
-        mock_instance.secrets.kv.v2.read_secret_version.return_value = {
-            "data": {"data": {"MY_KEY": "vault_val"}}
-        }
+        mock_instance.secrets.kv.v2.read_secret_version.return_value = {"data": {"data": {"MY_KEY": "vault_val"}}}
 
         # Manually set VAULT envs to trigger the logic
         with patch.dict(os.environ, {"VAULT_ADDR": "http://vault:8200", "VAULT_TOKEN": "root"}):

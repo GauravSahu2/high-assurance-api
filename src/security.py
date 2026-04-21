@@ -14,9 +14,7 @@ from flask import Response
 JWT_SECRET: str = os.environ.get("JWT_SECRET", "dev-secret-key")
 
 if len(JWT_SECRET) < 48 and not os.environ.get("TEST_MODE"):
-    raise ValueError(
-        "JWT_SECRET must be at least 48 bytes for HS384 requirements!"
-    )  # pragma: no cover
+    raise ValueError("JWT_SECRET must be at least 48 bytes for HS384 requirements!")  # pragma: no cover
 
 
 def apply_security_headers(response: Response) -> Response:

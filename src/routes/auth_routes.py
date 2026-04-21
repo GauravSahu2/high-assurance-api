@@ -58,9 +58,7 @@ def login():
     except redis_lib.RedisError:
         return jsonify({"error": "service temporarily degraded"}), 503
 
-    with hsa_tracer.start_as_current_span(
-        "login.authenticate", attributes={"login.ip": ip}
-    ) as span:
+    with hsa_tracer.start_as_current_span("login.authenticate", attributes={"login.ip": ip}) as span:
         body = request.get_json(silent=True)
         if not isinstance(body, dict):
             span.set_attribute("login.result", "bad_request")

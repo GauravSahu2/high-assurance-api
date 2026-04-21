@@ -21,9 +21,7 @@ def get_secret(key: str, default: str | None = None) -> str:
     if VAULT_ADDR and VAULT_TOKEN:
         try:
             client = hvac.Client(url=VAULT_ADDR, token=VAULT_TOKEN)
-            read_response = client.secrets.kv.v2.read_secret_version(
-                path="high-assurance", mount_point="secret"
-            )
+            read_response = client.secrets.kv.v2.read_secret_version(path="high-assurance", mount_point="secret")
             return read_response["data"]["data"].get(key, os.environ.get(key, default))
         except Exception:
             pass  # Fallback to ENV if Vault fails (High-Assurance Resilience)

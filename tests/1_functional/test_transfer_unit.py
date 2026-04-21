@@ -104,9 +104,7 @@ def test_jwt_encode_explicit_algorithm():
     with patch("auth.pyjwt.encode") as mock_encode:
         generate_jwt("admin")
         _, kwargs = mock_encode.call_args
-        assert (
-            kwargs.get("algorithm") == "HS256"
-        ), "Mutant survived: algorithm parameter was stripped!"
+        assert kwargs.get("algorithm") == "HS256", "Mutant survived: algorithm parameter was stripped!"
 
 
 def test_verify_jwt_format_mutants(client):
@@ -120,9 +118,7 @@ def test_verify_jwt_format_mutants(client):
 
     # 🔪 Kill Mutant 9: Send a valid token, but with a double-space
     res2 = client.get("/api/users/user_1", headers={"Authorization": f"Bearer  {valid_token}"})
-    assert (
-        res2.status_code == 401
-    ), "Mutant 9 survived: split(None) allowed a malformed double-space!"
+    assert res2.status_code == 401, "Mutant 9 survived: split(None) allowed a malformed double-space!"
 
 
 def test_jwt_regular_user_role():
@@ -158,9 +154,7 @@ def test_jwt_absolute_time_strictness():
     try:
         # 2. Generate the token directly
         token = generate_jwt("admin")
-        secret = os.environ.get(
-            "JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234"
-        )
+        secret = os.environ.get("JWT_SECRET", "super-secure-dev-secret-key-123456789012345678901234")
         payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
 
         # 3. 🔪 Kill Mutant 16 (Strict 900s Delta)

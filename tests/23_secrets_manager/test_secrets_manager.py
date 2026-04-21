@@ -9,9 +9,7 @@ SECRET_REGION = "us-east-1"
 
 
 def _seed_secrets(client):
-    client.create_secret(
-        Name="high-assurance-api/jwt-secret", SecretString="test-jwt-secret-from-secrets-manager"
-    )
+    client.create_secret(Name="high-assurance-api/jwt-secret", SecretString="test-jwt-secret-from-secrets-manager")
     client.create_secret(
         Name="high-assurance-api/admin-password",
         SecretString="test-admin-password-from-secrets-manager",

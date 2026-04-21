@@ -67,9 +67,7 @@ def test_logout_setex_redis_error(client, auth_header):
 def test_upload_dataset_exception(client, auth_header):
     with patch("csv_validator.validate_and_sanitize_csv", side_effect=Exception("mock")):
         data = {"file": (io.BytesIO(b"a,b\n1,2"), "test.csv")}
-        res = client.post(
-            "/upload-dataset", headers=auth_header, data=data, content_type="multipart/form-data"
-        )
+        res = client.post("/upload-dataset", headers=auth_header, data=data, content_type="multipart/form-data")
     assert res.status_code == 202
 
 

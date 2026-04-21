@@ -37,8 +37,7 @@ def test_opa_binary_presence_is_mandatory():
     """SOC2 Compliance: Policy-as-Code checks cannot be silently skipped."""
     if not shutil.which("opa"):
         pytest.fail(
-            "CRITICAL BLOCKER: OPA binary not found. "
-            "Policy-as-code validation is a strict SOC2 requirement."
+            "CRITICAL BLOCKER: OPA binary not found. " "Policy-as-code validation is a strict SOC2 requirement."
         )
 
 

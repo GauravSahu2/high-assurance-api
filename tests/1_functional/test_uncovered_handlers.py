@@ -6,9 +6,7 @@ import redis
 def test_global_redis_error_handler(client):
     import fakeredis
 
-    with patch.object(
-        fakeredis.FakeStrictRedis, "get", side_effect=redis.RedisError("mock outage")
-    ):
+    with patch.object(fakeredis.FakeStrictRedis, "get", side_effect=redis.RedisError("mock outage")):
         res = client.post("/login", json={"username": "admin", "password": "bad"})
     assert res.status_code == 503
 

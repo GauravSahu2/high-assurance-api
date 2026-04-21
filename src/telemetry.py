@@ -39,9 +39,7 @@ def init_telemetry() -> trace.Tracer:
         try:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
-            provider.add_span_processor(
-                BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True))
-            )
+            provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)))
         except Exception:
             pass  # Graceful degradation if collector is unreachable
 

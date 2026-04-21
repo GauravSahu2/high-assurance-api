@@ -28,15 +28,11 @@ class TestChangeManagement:
     def test_pre_commit_hooks_configured(self):
         """PCI 6.4.5: Pre-commit validation must be configured."""
         path = os.path.join(os.path.dirname(__file__), "..", "..", ".pre-commit-config.yaml")
-        assert os.path.exists(
-            path
-        ), "Pre-commit hooks must be configured (.pre-commit-config.yaml)"
+        assert os.path.exists(path), "Pre-commit hooks must be configured (.pre-commit-config.yaml)"
 
     def test_gitops_deployment_pipeline_exists(self):
         """SOC 2 CC8.1: Changes must flow through an automated pipeline."""
-        gitops_path = os.path.join(
-            os.path.dirname(__file__), "..", "..", ".github", "workflows", "gitops.yml"
-        )
+        gitops_path = os.path.join(os.path.dirname(__file__), "..", "..", ".github", "workflows", "gitops.yml")
         assert os.path.exists(gitops_path), "GitOps deployment pipeline must exist"
 
     def test_main_ci_pipeline_exists(self):
@@ -74,15 +70,11 @@ class TestChangeManagement:
     def test_dependabot_configured(self):
         """PCI 6.2: Dependency updates must be automated."""
         path = os.path.join(os.path.dirname(__file__), "..", "..", ".github", "dependabot.yml")
-        assert os.path.exists(
-            path
-        ), "Dependabot must be configured for automated dependency updates"
+        assert os.path.exists(path), "Dependabot must be configured for automated dependency updates"
 
     def test_two_person_rule_test_exists(self):
         """SOC 2 CC8.1: Critical changes require dual authorization."""
-        path = os.path.join(
-            os.path.dirname(__file__), "..", "17_two_person_rule", "test_two_person_rule.py"
-        )
+        path = os.path.join(os.path.dirname(__file__), "..", "17_two_person_rule", "test_two_person_rule.py")
         assert os.path.exists(path), "Two-person rule test must exist"
 
     def test_gitignore_excludes_sensitive_files(self):

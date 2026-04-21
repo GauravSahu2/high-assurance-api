@@ -39,6 +39,4 @@ def test_login_timing_leak_protection():
     avg_ghost = sum(ghost_times) / len(ghost_times)
     ratio = max(avg_existing, avg_ghost) / max(min(avg_existing, avg_ghost), 1e-9)
 
-    assert (
-        ratio < 1.5
-    ), f"Timing leak detected: existing={avg_existing:.4f}s ghost={avg_ghost:.4f}s ratio={ratio:.2f}"
+    assert ratio < 1.5, f"Timing leak detected: existing={avg_existing:.4f}s ghost={avg_ghost:.4f}s ratio={ratio:.2f}"

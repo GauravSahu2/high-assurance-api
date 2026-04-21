@@ -25,9 +25,7 @@ class TestDataRetentionPolicy:
         """SOC 2 CC6.5: Data lifecycle management must be implemented."""
         from main import purge_expired_idempotency_keys
 
-        assert callable(
-            purge_expired_idempotency_keys
-        ), "purge_expired_idempotency_keys function must exist"
+        assert callable(purge_expired_idempotency_keys), "purge_expired_idempotency_keys function must exist"
 
     def test_expired_idempotency_keys_are_purged(self, client):
         """GDPR Art.5: Stale records must be automatically cleaned."""
@@ -70,9 +68,7 @@ class TestDataRetentionPolicy:
 
             deleted = purge_expired_idempotency_keys(db)
 
-            remaining = (
-                db.query(IdempotencyKey).filter_by(idempotency_key="recent:test:key").first()
-            )
+            remaining = db.query(IdempotencyKey).filter_by(idempotency_key="recent:test:key").first()
             assert remaining is not None, "Recent keys must NOT be purged"
         finally:
             # Clean up

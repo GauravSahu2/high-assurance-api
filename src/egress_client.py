@@ -49,9 +49,7 @@ def _resolve_and_check(hostname: str) -> None:
         ip = ipaddress.ip_address(sockaddr[0])
         for network in _BLOCKED_NETWORKS:
             if ip in network:
-                raise SSRFError(
-                    f"Resolved IP {ip} for host '{hostname}' is in blocked network {network}."
-                )
+                raise SSRFError(f"Resolved IP {ip} for host '{hostname}' is in blocked network {network}.")
 
 
 def safe_get(url: str, timeout: float = 5.0, **kwargs) -> requests.Response:

@@ -32,9 +32,7 @@ class TestDataResidency:
 
         source = inspect.getsource(_load_secret)
         # The code should read region from env var, not hardcode it
-        assert (
-            "os.environ" in source or "environ" in source
-        ), "AWS region must be configurable via environment variable"
+        assert "os.environ" in source or "environ" in source, "AWS region must be configurable via environment variable"
 
     def test_database_url_does_not_leak_region(self, client):
         """Data sovereignty: DB connection string must not expose cloud region in responses."""

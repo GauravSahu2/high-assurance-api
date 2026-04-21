@@ -49,9 +49,7 @@ class TestPasswordHashing:
         """PCI 8.2.1: Each user must have a unique salt."""
         hashes = [data["password_hash"] for data in USERS.values()]
         # bcrypt auto-salts, so even identical passwords produce different hashes
-        assert len(set(hashes)) == len(
-            hashes
-        ), "Password hashes should be unique per user (unique salts)"
+        assert len(set(hashes)) == len(hashes), "Password hashes should be unique per user (unique salts)"
 
 
 class TestPasswordPolicyRequirements:

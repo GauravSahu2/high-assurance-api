@@ -38,9 +38,7 @@ class TestXSSPrevention:
 
     def test_transfer_to_user_xss(self, client):
         """CWE-79: XSS via to_user field must not reflect."""
-        token = client.post(
-            "/login", json={"username": "admin", "password": "password123"}
-        ).get_json()["token"]
+        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
         xss = "<script>steal(document.cookie)</script>"
         res = client.post(
             "/transfer",
@@ -65,15 +63,11 @@ class TestXSSPrevention:
         for ep in endpoints:
             res = client.get(ep)
             ct = res.headers.get("Content-Type", "")
-            assert (
-                "application/json" in ct
-            ), f"Endpoint {ep} returns Content-Type '{ct}' — must be application/json"
+            assert "application/json" in ct, f"Endpoint {ep} returns Content-Type '{ct}' — must be application/json"
 
     def test_idempotency_key_xss(self, client):
         """CWE-79: XSS via headers must not reflect."""
-        token = client.post(
-            "/login", json={"username": "admin", "password": "password123"}
-        ).get_json()["token"]
+        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
         res = client.post(
             "/transfer",
             json={"amount": 1.0, "to_user": "user_2"},

@@ -38,8 +38,7 @@ AVAILABILITY_SLO = SLO(
     target=99.9,
     window_days=30,
     sli_query=(
-        '1 - (sum(rate(flask_http_request_total{status=~"5.."}[5m])) '
-        "/ sum(rate(flask_http_request_total[5m])))"
+        '1 - (sum(rate(flask_http_request_total{status=~"5.."}[5m])) ' "/ sum(rate(flask_http_request_total[5m])))"
     ),
     error_budget=0.1,
 )
@@ -49,10 +48,7 @@ LATENCY_SLO = SLO(
     description="95th percentile latency for /transfer endpoint",
     target=95.0,
     window_days=30,
-    sli_query=(
-        "histogram_quantile(0.95, "
-        'rate(http_request_duration_seconds_bucket{endpoint="/transfer"}[5m]))'
-    ),
+    sli_query=("histogram_quantile(0.95, " 'rate(http_request_duration_seconds_bucket{endpoint="/transfer"}[5m]))'),
     error_budget=5.0,
 )
 
@@ -86,9 +82,5 @@ def check_error_budget_remaining(
         "error_rate": round(error_rate * 100, 4),
         "budget_consumed_pct": round(budget_consumed_pct, 2),
         "budget_remaining_pct": round(budget_remaining_pct, 2),
-        "status": (
-            "healthy"
-            if budget_remaining_pct > 20
-            else "warning" if budget_remaining_pct > 0 else "breached"
-        ),
+        "status": ("healthy" if budget_remaining_pct > 20 else "warning" if budget_remaining_pct > 0 else "breached"),
     }

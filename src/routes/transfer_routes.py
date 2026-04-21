@@ -96,12 +96,7 @@ def transfer():
                 return jsonify({"error": "duplicate transaction"}), 409
 
             # Acquire locks in deterministic order to prevent deadlocks
-            accs = (
-                db.query(Account)
-                .filter(Account.user_id.in_(sorted([username, to_user])))
-                .with_for_update()
-                .all()
-            )
+            accs = db.query(Account).filter(Account.user_id.in_(sorted([username, to_user]))).with_for_update().all()
             accounts = {a.user_id: a for a in accs}
             sender = accounts.get(username)
             receiver = accounts.get(to_user)

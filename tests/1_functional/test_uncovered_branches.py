@@ -50,17 +50,13 @@ def test_transfer_non_dict_body_returns_400(anon_client):
 
 
 def test_balance_bad_token_returns_401(anon_client):
-    res = anon_client.get(
-        "/api/accounts/user_1/balance", headers={"Authorization": "Bearer not-a-real-token"}
-    )
+    res = anon_client.get("/api/accounts/user_1/balance", headers={"Authorization": "Bearer not-a-real-token"})
     assert res.status_code == 401
 
 
 def test_balance_unknown_account_returns_404(anon_client):
     token = generate_jwt("admin", "admin")
-    res = anon_client.get(
-        "/api/accounts/nonexistent/balance", headers={"Authorization": f"Bearer {token}"}
-    )
+    res = anon_client.get("/api/accounts/nonexistent/balance", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 404
 
 
@@ -139,9 +135,7 @@ def test_login_non_string_username_returns_400(anon_client):
 
 def test_transfer_missing_to_user(anon_client):
     token = generate_jwt("user_1")
-    res = anon_client.post(
-        "/transfer", json={"amount": 10.0}, headers={"Authorization": f"Bearer {token}"}
-    )
+    res = anon_client.post("/transfer", json={"amount": 10.0}, headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 400
 
 

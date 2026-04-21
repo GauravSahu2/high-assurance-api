@@ -31,9 +31,7 @@ class TestTLSEnforcement:
     def test_content_type_options_nosniff(self, client):
         """CWE-16: Prevent MIME type sniffing attacks."""
         res = client.get("/health")
-        assert (
-            res.headers.get("X-Content-Type-Options") == "nosniff"
-        ), "X-Content-Type-Options must be 'nosniff'"
+        assert res.headers.get("X-Content-Type-Options") == "nosniff", "X-Content-Type-Options must be 'nosniff'"
 
     def test_frame_options_deny(self, client):
         """CWE-1021: Prevent clickjacking via X-Frame-Options."""
@@ -82,15 +80,9 @@ class TestTLSEnforcement:
         """SOC 2 CC6.7: Security headers must be present on ALL responses, not just 200s."""
         # Test on 404
         res_404 = client.get("/nonexistent-path")
-        assert (
-            res_404.headers.get("X-Content-Type-Options") == "nosniff"
-        ), "Security headers missing on 404 responses"
-        assert (
-            res_404.headers.get("Strict-Transport-Security") is not None
-        ), "HSTS missing on error responses"
+        assert res_404.headers.get("X-Content-Type-Options") == "nosniff", "Security headers missing on 404 responses"
+        assert res_404.headers.get("Strict-Transport-Security") is not None, "HSTS missing on error responses"
 
         # Test on 401
         res_401 = client.post("/transfer", json={"amount": 1}, headers={})
-        assert (
-            res_401.headers.get("X-Content-Type-Options") == "nosniff"
-        ), "Security headers missing on 401 responses"
+        assert res_401.headers.get("X-Content-Type-Options") == "nosniff", "Security headers missing on 401 responses"

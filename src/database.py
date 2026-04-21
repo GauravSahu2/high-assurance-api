@@ -19,9 +19,7 @@ if os.environ.get("TEST_MODE"):
         dbapi_connection.execute("PRAGMA busy_timeout=30000")
 
 else:  # pragma: no cover
-    DATABASE_URL = os.environ.get(
-        "DATABASE_URL", "postgresql://admin:password123@localhost:5432/high_assurance"
-    )
+    DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://admin:password123@localhost:5432/high_assurance")
     engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

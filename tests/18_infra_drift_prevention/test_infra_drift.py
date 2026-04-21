@@ -14,9 +14,7 @@ def remediate_drift(ec2_client, group_id: str, expected_ports: set):
 def test_infrastructure_drift_remediation():
     ec2 = boto3.client("ec2", region_name="us-east-1")
     vpc = ec2.create_vpc(CidrBlock="10.0.0.0/16")
-    sg = ec2.create_security_group(
-        GroupName="prod-sg", Description="Prod", VpcId=vpc["Vpc"]["VpcId"]
-    )
+    sg = ec2.create_security_group(GroupName="prod-sg", Description="Prod", VpcId=vpc["Vpc"]["VpcId"])
 
     ec2.authorize_security_group_ingress(
         GroupId=sg["GroupId"],
@@ -35,9 +33,7 @@ def test_infrastructure_drift_remediation():
     remediate_drift(ec2, sg["GroupId"], expected_ports)
 
     response = ec2.describe_security_groups(GroupIds=[sg["GroupId"]])
-    actual_ports = {
-        rule["FromPort"] for rule in response["SecurityGroups"][0].get("IpPermissions", [])
-    }
+    actual_ports = {rule["FromPort"] for rule in response["SecurityGroups"][0].get("IpPermissions", [])}
 
     drift = actual_ports - expected_ports
     assert drift == set(), f"Drift Remediation failed! Unauthorized ports remain: {drift}"

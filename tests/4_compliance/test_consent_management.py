@@ -21,9 +21,7 @@ class TestConsentAndTransparency:
         res = client.get("/openapi.yaml")
         assert res.status_code == 200, "OpenAPI spec must be publicly accessible"
         body = res.get_data(as_text=True)
-        assert (
-            "openapi" in body.lower() or "swagger" in body.lower()
-        ), "Spec must be a valid OpenAPI document"
+        assert "openapi" in body.lower() or "swagger" in body.lower(), "Spec must be a valid OpenAPI document"
 
     def test_openapi_describes_data_collected(self):
         """GDPR Art.13: Users must know what data is collected."""
@@ -32,12 +30,8 @@ class TestConsentAndTransparency:
             with open(spec_path) as f:
                 content = f.read()
             # Verify the spec documents the data model
-            assert (
-                "username" in content or "user" in content
-            ), "OpenAPI spec must document user-facing fields"
-            assert (
-                "/login" in content or "/transfer" in content
-            ), "OpenAPI spec must document API endpoints"
+            assert "username" in content or "user" in content, "OpenAPI spec must document user-facing fields"
+            assert "/login" in content or "/transfer" in content, "OpenAPI spec must document API endpoints"
 
     def test_login_response_is_minimal(self, client):
         """GDPR Art.5(1)(c): Data minimization — only return what's needed."""
@@ -51,9 +45,7 @@ class TestConsentAndTransparency:
         # These are acceptable in login response per OAuth 2.0 spec
         acceptable_keys = {"token", "access_token", "token_type", "expires_in", "refresh_token"}
         extra_keys = set(data.keys()) - acceptable_keys
-        assert (
-            len(extra_keys) == 0
-        ), f"Login returns unnecessary data: {extra_keys}. Violates data minimization."
+        assert len(extra_keys) == 0, f"Login returns unnecessary data: {extra_keys}. Violates data minimization."
 
     def test_health_endpoint_does_not_leak_internals(self, client):
         """SOC 2 CC2.1: System information must not be overshared."""
@@ -69,7 +61,5 @@ class TestConsentAndTransparency:
     def test_correlation_id_in_responses(self, client):
         """SOC 2 CC7.2: All requests must be traceable."""
         res = client.get("/health")
-        assert (
-            "X-Correlation-ID" in res.headers
-        ), "Every response must include X-Correlation-ID for traceability"
+        assert "X-Correlation-ID" in res.headers, "Every response must include X-Correlation-ID for traceability"
         assert len(res.headers["X-Correlation-ID"]) > 0, "Correlation ID must not be empty"
