@@ -14,6 +14,10 @@ if command -v docker &> /dev/null; then
     
     echo "[>] Trivy (CVEs)..."
     docker run --rm -v "$(pwd)":/project -v "$(pwd)/.trivycache:/root/.cache" aquasec/trivy:0.50.1 fs --scanners vuln --severity HIGH,CRITICAL /project/requirements.txt || echo "✅ Dependencies verified."
+
+    echo "[>] Enforcing Cyclomatic Complexity (max 25)..."
+    ruff check src/ --select C901 || (echo "❌ Complexity threshold exceeded!" && exit 1)
+    echo "✅ Complexity within limits."
 else
     echo "⚠️ Docker unavailable — skipping static scans."
 fi

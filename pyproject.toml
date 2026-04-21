@@ -30,6 +30,7 @@ select = [
     "UP",     # pyupgrade
     "SIM",    # simplify
     "RUF",    # ruff-specific
+    "C901",   # mccabe complexity
 ]
 extend-ignore = [
     "F403",   # star imports (used in __init__.py)
@@ -57,6 +58,9 @@ extend-ignore = [
     "N999",   # invalid module name
     "RUF005", # list concatenation
 ]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 25
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "S106", "S105", "E501"]
