@@ -111,9 +111,20 @@ def transfer():
             receiver.balance = float(receiver.balance) + amount
 
             if scoped:
-                db.add(IdempotencyKey(idempotency_key=scoped, status="processed", response_body={"status": "transferred"}))
+                db.add(
+                    IdempotencyKey(
+                        idempotency_key=scoped,
+                        status="processed",
+                        response_body={"status": "transferred"},
+                    )
+                )
 
-            db.add(OutboxEvent(event_type="FUNDS_TRANSFERRED", payload={"from": username, "to": to_user, "amount": amount}))
+            db.add(
+                OutboxEvent(
+                    event_type="FUNDS_TRANSFERRED",
+                    payload={"from": username, "to": to_user, "amount": amount},
+                )
+            )
             db.commit()
             new_balance = float(sender.balance)
             txn_span.set_attribute("transfer.result", "success")
