@@ -1,7 +1,8 @@
 import importlib
 
-import main
 import pytest
+
+import main
 from main import get_db
 
 

@@ -1,6 +1,7 @@
-import pytest
-from src.dlp_processor import dlp_redactor
 from unittest.mock import MagicMock
+
+from src.dlp_processor import dlp_redactor
+
 
 def test_dlp_redactor_exception_coverage():
     """Trigger the try-except block in dlp_redactor for 100% coverage."""

@@ -1,4 +1,5 @@
 import pytest
+
 from main import app, get_db
 from security import decode_jwt, generate_jwt
 

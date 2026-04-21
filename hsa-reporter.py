@@ -27,7 +27,7 @@ def parse_gitleaks():
                 print(f"  \033[91m[🚨 ALERT] {len(data)} Secrets Detected!\033[0m")
                 for finding in data[:5]:
                     print(f"    - File: {finding.get('File')} | Rule: {finding.get('RuleID')}")
-        except:
+        except Exception:
             print("  [!] Error reading Gitleaks JSON.")
 
 
@@ -48,7 +48,7 @@ def parse_semgrep():
                 print(f"  \033[91m[🚨 ALERT] {len(results)} Code Vulnerabilities Detected!\033[0m")
                 for r in results[:5]:
                     print(f"    - [{r.get('extra', {}).get('severity', 'WARN')}] {r.get('path')}: {r.get('check_id')}")
-        except:
+        except Exception:
             print("  [!] Error reading Semgrep JSON.")
 
 

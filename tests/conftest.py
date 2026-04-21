@@ -28,9 +28,10 @@ os.environ.setdefault("JWT_SECRET", "super-secure-dev-secret-key-123456789012345
 # teardown, causing a harmless but noisy ValueError. Shut it down cleanly.
 import atexit
 
+from opentelemetry import trace as _otel_trace
+
 import main as _main
 from main import app as flask_app
-from opentelemetry import trace as _otel_trace
 
 
 def _shutdown_otel():

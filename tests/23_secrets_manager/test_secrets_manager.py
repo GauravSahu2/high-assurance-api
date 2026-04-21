@@ -2,8 +2,9 @@ import os
 from unittest.mock import patch
 
 import boto3
-import main
 from moto import mock_aws
+
+import main
 
 SECRET_REGION = "us-east-1"
 

@@ -5,6 +5,7 @@ Tests for CSV injection sanitisation and Pandera schema validation.
 import io
 
 import pytest
+
 from csv_validator import validate_and_sanitize_csv
 
 

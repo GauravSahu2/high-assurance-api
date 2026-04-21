@@ -2,8 +2,9 @@ import importlib
 import os
 from unittest.mock import patch
 
-import main
 import redis
+
+import main
 from main import app, generate_jwt, init_db
 
 client = app.test_client()

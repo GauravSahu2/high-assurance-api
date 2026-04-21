@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+
 from main import Account, generate_jwt, get_db
 from main import app as flask_app
 
@@ -64,6 +65,7 @@ def test_expired_jwt_returns_401(anon_client):
     from datetime import UTC, datetime, timedelta
 
     import jwt
+
     from main import JWT_SECRET
 
     expired_token = jwt.encode(

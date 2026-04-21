@@ -12,6 +12,7 @@ Validates:
 """
 
 import jwt
+
 import main
 from security import JWT_SECRET
 

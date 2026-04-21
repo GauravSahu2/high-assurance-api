@@ -1,4 +1,5 @@
 import schemathesis
+
 from main import app
 
 schema = schemathesis.openapi.from_path("openapi.yaml")

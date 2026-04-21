@@ -1,8 +1,9 @@
 import importlib
 from unittest.mock import patch
 
-import main
 import redis
+
+import main
 
 
 def test_redis_outages_164_186_194_199_214():

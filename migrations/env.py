@@ -1,13 +1,13 @@
-import sys
 import os
+import sys
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
+
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Point Alembic to your source code
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from database import Base
-import models  # This ensures Alembic actually reads the tables
 
 config = context.config
 if config.config_file_name is not None:

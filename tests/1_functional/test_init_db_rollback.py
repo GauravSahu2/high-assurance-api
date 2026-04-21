@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from main import init_db
 
 

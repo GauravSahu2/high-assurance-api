@@ -1,8 +1,9 @@
 import importlib
 from unittest.mock import patch
 
-import main
 import redis
+
+import main
 import security
 
 client = main.app.test_client()

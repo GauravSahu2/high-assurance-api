@@ -26,13 +26,11 @@ What it catches:
 """
 
 import argparse
-import os
 import re
 import sys
 from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
-from typing import Optional
 
 
 class Severity(IntEnum):
@@ -47,8 +45,8 @@ class Finding:
     category: str
     title: str
     description: str
-    file: Optional[str] = None
-    line: Optional[int] = None
+    file: str | None = None
+    line: int | None = None
     recommendation: str = ""
 
 
@@ -456,9 +454,7 @@ def main():
         print(format_text(report))
 
     # Exit code based on fail-on threshold
-    if args.fail_on == "critical" and report.critical_count > 0:
-        sys.exit(1)
-    elif args.fail_on == "warning" and (report.critical_count > 0 or report.warning_count > 0):
+    if (args.fail_on == "critical" and report.critical_count > 0) or (args.fail_on == "warning" and (report.critical_count > 0 or report.warning_count > 0)):
         sys.exit(1)
 
     sys.exit(0)

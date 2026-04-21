@@ -1,4 +1,5 @@
 import pytest
+
 from main import ALLOWED_ORIGINS
 from main import app as flask_app
 

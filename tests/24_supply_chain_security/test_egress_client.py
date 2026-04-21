@@ -6,6 +6,7 @@ Proves that metadata endpoints and private ranges are unreachable.
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from egress_client import SSRFError, safe_get
 
 
