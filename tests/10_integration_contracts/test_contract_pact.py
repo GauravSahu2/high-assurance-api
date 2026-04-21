@@ -30,4 +30,6 @@ def test_frontend_backend_contract():
         validate(instance=bad_backend_response, schema=FRONTEND_CONTRACT)
         pytest.fail("CRITICAL: The contract test FAILED to catch the backend bug!")
     except ValidationError as e:
-        print(f"[SUCCESS] Contract Enforcement caught the Backend bug! Error prevented: '{e.message}'")
+        print(
+            f"[SUCCESS] Contract Enforcement caught the Backend bug! Error prevented: '{e.message}'"
+        )

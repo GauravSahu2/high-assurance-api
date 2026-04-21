@@ -10,6 +10,7 @@ Validates:
   • Failed authentication attempts are logged
   • All financial transactions generate audit events
 """
+
 from datetime import UTC, datetime
 
 import main
@@ -22,9 +23,14 @@ class TestAuditTrailCompleteness:
 
     def test_successful_transfer_generates_audit_event(self, client):
         """PCI 10.1: All access to cardholder data is logged."""
-        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
-        client.post("/transfer", json={"amount": 10.0, "to_user": "user_2"},
-                     headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "audit-001"})
+        token = client.post(
+            "/login", json={"username": "admin", "password": "password123"}
+        ).get_json()["token"]
+        client.post(
+            "/transfer",
+            json={"amount": 10.0, "to_user": "user_2"},
+            headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "audit-001"},
+        )
 
         db = SessionLocal()
         try:
@@ -42,9 +48,14 @@ class TestAuditTrailCompleteness:
 
     def test_audit_event_has_timestamp(self, client):
         """FDA 21 CFR §11.10(e): Records must include date and time."""
-        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
-        client.post("/transfer", json={"amount": 5.0, "to_user": "user_2"},
-                     headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "audit-ts-001"})
+        token = client.post(
+            "/login", json={"username": "admin", "password": "password123"}
+        ).get_json()["token"]
+        client.post(
+            "/transfer",
+            json={"amount": 5.0, "to_user": "user_2"},
+            headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "audit-ts-001"},
+        )
 
         db = SessionLocal()
         try:
@@ -77,9 +88,14 @@ class TestAuditTrailCompleteness:
 
     def test_transfer_audit_includes_both_parties(self, client):
         """SOC 2 CC7.3: Audit trail must identify all parties in a transaction."""
-        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
-        client.post("/transfer", json={"amount": 1.0, "to_user": "user_1"},
-                     headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "audit-party-001"})
+        token = client.post(
+            "/login", json={"username": "admin", "password": "password123"}
+        ).get_json()["token"]
+        client.post(
+            "/transfer",
+            json={"amount": 1.0, "to_user": "user_1"},
+            headers={"Authorization": f"Bearer {token}", "X-Idempotency-Key": "audit-party-001"},
+        )
 
         db = SessionLocal()
         try:
@@ -99,6 +115,7 @@ class TestAuditImmutability:
         import inspect
 
         from models import OutboxEvent
+
         source = inspect.getsource(OutboxEvent)
         assert "created_at" in source, "OutboxEvent model must have a created_at field"
 
@@ -107,9 +124,12 @@ class TestAuditImmutability:
         import inspect
 
         from main import transfer
+
         source = inspect.getsource(transfer)
         # The transfer function should only db.add() outbox events, never update them
         assert "OutboxEvent" in source, "Transfer must create OutboxEvent records"
         # No update/delete patterns on OutboxEvent in the transfer function
-        assert ".delete()" not in source or "OutboxEvent" not in source.split(".delete()")[0].split("\n")[-1], \
-            "FDA VIOLATION: Transfer function must not delete OutboxEvent records"
+        assert (
+            ".delete()" not in source
+            or "OutboxEvent" not in source.split(".delete()")[0].split("\n")[-1]
+        ), "FDA VIOLATION: Transfer function must not delete OutboxEvent records"

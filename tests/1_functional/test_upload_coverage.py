@@ -4,6 +4,7 @@ Coverage tests for upload endpoint edge cases.
 These tests exercise the upload validation branches that are not
 reached by Schemathesis fuzzing (file size, empty name, too-large).
 """
+
 import io
 
 
@@ -36,6 +37,7 @@ def test_upload_empty_file(client, auth_header):
 def test_upload_file_too_large(client, auth_header):
     """Covers upload_routes.py line 64 — oversized file rejection."""
     from unittest.mock import patch
+
     # Patch MAX_UPLOAD_SIZE_BYTES to a small value for testing
     with patch("routes.upload_routes.MAX_UPLOAD_SIZE_BYTES", 5):
         data = {"file": (io.BytesIO(b"this is more than 5 bytes"), "test.csv")}

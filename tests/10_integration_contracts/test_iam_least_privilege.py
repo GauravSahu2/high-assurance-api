@@ -15,7 +15,8 @@ def test_backend_iam_role_security():
 
     with patch("botocore.client.BaseClient._make_api_call") as mock_call:
         mock_call.side_effect = ClientError(
-            {"Error": {"Code": "AccessDenied", "Message": "IAM Role lacks delete permissions"}}, "DeleteBucket"
+            {"Error": {"Code": "AccessDenied", "Message": "IAM Role lacks delete permissions"}},
+            "DeleteBucket",
         )
         with pytest.raises(ClientError) as excinfo:
             client.delete_bucket(Bucket="production-database-backups")

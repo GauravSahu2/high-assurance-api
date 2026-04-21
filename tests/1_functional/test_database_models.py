@@ -1,8 +1,7 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from database import Base, get_db
 from models import Account, IdempotencyKey, OutboxEvent
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 def test_database_models_and_outbox():
@@ -27,16 +26,15 @@ def test_database_models_and_outbox():
 
     # 4. Test Transactional Outbox Event Model
     outbox = OutboxEvent(
-        event_type="FUNDS_TRANSFERRED", payload={"from": "user_1", "amount": 100.0, "to_user": "user_2"}
+        event_type="FUNDS_TRANSFERRED",
+        payload={"from": "user_1", "amount": 100.0, "to_user": "user_2"},
     )
     db.add(outbox)
 
     db.commit()
 
     # 5. Assertions: Prove the data layer reads and writes securely
-    assert (
-        db.query(Account).filter(Account.user_id == "user_1").first().balance == 1500.0
-    )
+    assert db.query(Account).filter(Account.user_id == "user_1").first().balance == 1500.0
     assert db.query(IdempotencyKey).first().response_body["status"] == "transferred"
     assert db.query(OutboxEvent).first().payload["amount"] == 100.0
 

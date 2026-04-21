@@ -12,8 +12,6 @@ Validates:
 """
 
 
-
-
 class TestErrorDisclosure:
     """OWASP A05: Security Misconfiguration — Information Disclosure."""
 
@@ -25,7 +23,7 @@ class TestErrorDisclosure:
         assert data["error"] == "not found", "404 must use generic message"
         body = res.get_data(as_text=True)
         assert "Traceback" not in body, "Stack trace in 404 response"
-        assert "File \"" not in body, "File path in 404 response"
+        assert 'File "' not in body, "File path in 404 response"
 
     def test_405_returns_allow_header(self, client):
         """RFC 9110: 405 Must include Allow header with valid methods."""
@@ -45,8 +43,7 @@ class TestErrorDisclosure:
 
     def test_invalid_json_returns_clean_error(self, client):
         """CWE-209: Malformed input must not trigger verbose errors."""
-        res = client.post("/login", data="not-json",
-                          content_type="application/json")
+        res = client.post("/login", data="not-json", content_type="application/json")
         assert res.status_code == 400
         body = res.get_data(as_text=True)
         assert "Traceback" not in body, "Stack trace on malformed JSON"
@@ -59,8 +56,9 @@ class TestErrorDisclosure:
         # Werkzeug/Flask may set Server header — it should not include version
         if server:
             import re
+
             # Flag if version number pattern is found (e.g., "Werkzeug/3.0.1")
-            version_pattern = re.search(r'\d+\.\d+(\.\d+)?', server)
+            version_pattern = re.search(r"\d+\.\d+(\.\d+)?", server)
             # This is a warning — many proxies strip this anyway
             # The important thing is it's documented
 
@@ -74,8 +72,7 @@ class TestErrorDisclosure:
         for method, path in error_triggers:
             res = client.open(path, method=method)
             ct = res.headers.get("Content-Type", "")
-            assert "application/json" in ct, \
-                f"{method} {path} returned '{ct}' instead of JSON"
+            assert "application/json" in ct, f"{method} {path} returned '{ct}' instead of JSON"
 
     def test_unauthorized_error_is_generic(self, client):
         """CWE-209: Auth errors must not reveal why authentication failed."""
@@ -85,17 +82,22 @@ class TestErrorDisclosure:
         res2 = client.post("/login", json={"username": "nonexistent", "password": "wrong"})
 
         # Both should return the same generic error (prevents user enumeration)
-        assert res1.get_json()["error"] == res2.get_json()["error"], \
-            "CWE-204 VIOLATION: Different error messages for wrong password vs non-existent user"
+        assert (
+            res1.get_json()["error"] == res2.get_json()["error"]
+        ), "CWE-204 VIOLATION: Different error messages for wrong password vs non-existent user"
 
     def test_transfer_errors_dont_leak_sql(self, client):
         """PCI 6.5.5: SQL errors must never be forwarded to clients."""
-        token = client.post("/login", json={"username": "admin", "password": "password123"}).get_json()["token"]
+        token = client.post(
+            "/login", json={"username": "admin", "password": "password123"}
+        ).get_json()["token"]
 
         # Try transferring to non-existent user
-        res = client.post("/transfer",
-                          json={"amount": 1.0, "to_user": "definitely_not_real"},
-                          headers={"Authorization": f"Bearer {token}"})
+        res = client.post(
+            "/transfer",
+            json={"amount": 1.0, "to_user": "definitely_not_real"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
         body = res.get_data(as_text=True).lower()
         assert "sqlalchemy" not in body, "SQLAlchemy error leaked to client"
         assert "select" not in body, "SQL statement leaked to client"

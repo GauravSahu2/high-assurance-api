@@ -1,5 +1,4 @@
 import pytest
-
 from main import app, get_db
 from security import decode_jwt, generate_jwt
 
@@ -14,12 +13,14 @@ def test_security_jwt_lifecycle():
     # Force the exception block in decode_jwt
     assert decode_jwt("this.is.not.valid") is None
 
+
 def test_database_generator_exhaustion():
     """Forces the generator to exhaust so 'finally: db.close()' is covered."""
     gen = get_db()
     next(gen)
     with pytest.raises(StopIteration):
         next(gen)
+
 
 def test_main_success_paths():
     """Covers the 200 OK paths that the fuzzer misses."""
@@ -33,5 +34,8 @@ def test_main_success_paths():
 
     # Cover successful transfer
     token = generate_jwt("admin")
-    client.post("/transfer", json={"to_user": "user_2", "amount": 10},
-                headers={"Authorization": f"Bearer {token}"})
+    client.post(
+        "/transfer",
+        json={"to_user": "user_2", "amount": 10},
+        headers={"Authorization": f"Bearer {token}"},
+    )

@@ -44,12 +44,7 @@ def test_opa_binary_presence_is_mandatory():
 
 def _opa_available() -> bool:
     try:
-        return (
-            subprocess.run(
-                ["opa", "version"], capture_output=True, timeout=5
-            ).returncode
-            == 0
-        )
+        return subprocess.run(["opa", "version"], capture_output=True, timeout=5).returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
 
@@ -113,9 +108,7 @@ def test_all_transfer_routes_require_auth():
         "/api/users/{user_id}",
         "/api/accounts/{user_id}/balance",
     ]:
-        assert (
-            path in protected
-        ), f"{path} must require authentication per security policy"
+        assert path in protected, f"{path} must require authentication per security policy"
 
 
 def test_public_endpoints_are_minimal():

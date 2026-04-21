@@ -1,9 +1,8 @@
 import io
 from unittest.mock import patch
 
-import redis
-
 import main
+import redis
 
 
 def test_vp_exception():
@@ -21,6 +20,7 @@ def test_login_lup_redis_error(client):
         if "lockout:user:" in name:
             raise redis.RedisError("mock")
         return 0
+
     with patch.object(main.redis_client, "get", side_effect=mock_get):
         res = client.post("/login", json={"username": "admin", "password": "bad"})
     assert res.status_code == 503
@@ -31,6 +31,7 @@ def test_login_lup_too_many_attempts(client):
         if "lockout:user:" in name:
             return 5
         return 0
+
     with patch.object(main.redis_client, "get", side_effect=mock_get):
         res = client.post("/login", json={"username": "admin", "password": "bad"})
     assert res.status_code == 429
@@ -39,6 +40,7 @@ def test_login_lup_too_many_attempts(client):
         if "lockout:user:" in name:
             raise redis.RedisError("mock")
         return 0
+
     with patch.object(main.redis_client, "get", side_effect=mock_get2):
         res = client.post("/login", json={"username": "admin", "password": "bad"})
     assert res.status_code == 503
@@ -65,7 +67,9 @@ def test_logout_setex_redis_error(client, auth_header):
 def test_upload_dataset_exception(client, auth_header):
     with patch("csv_validator.validate_and_sanitize_csv", side_effect=Exception("mock")):
         data = {"file": (io.BytesIO(b"a,b\n1,2"), "test.csv")}
-        res = client.post("/upload-dataset", headers=auth_header, data=data, content_type="multipart/form-data")
+        res = client.post(
+            "/upload-dataset", headers=auth_header, data=data, content_type="multipart/form-data"
+        )
     assert res.status_code == 202
 
 
@@ -81,6 +85,7 @@ def test_method_not_allowed_no_valid(client):
 
     class FakeException:
         valid_methods = None
+
     with client.application.test_request_context("/health"):
         res = main.method_not_allowed(FakeException())
         assert res.status_code == 405

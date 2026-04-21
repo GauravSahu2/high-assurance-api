@@ -12,7 +12,6 @@ Validates:
 """
 
 import jwt
-
 import main
 from security import JWT_SECRET
 
@@ -93,20 +92,25 @@ class TestTokenRevocation:
 
         client.post("/logout", headers={"Authorization": f"Bearer {token}"})
 
-        res = client.post("/transfer", json={"amount": 1.0, "to_user": "user_2"},
-                          headers={"Authorization": f"Bearer {token}"})
+        res = client.post(
+            "/transfer",
+            json={"amount": 1.0, "to_user": "user_2"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert res.status_code == 401, "Revoked token must not authorize transfers"
 
     def test_expired_token_rejected(self):
         """NIST AC-12: Expired tokens must be rejected."""
         # Create a token that expired 10 seconds ago
         import datetime
+
         now = datetime.datetime.now(datetime.UTC)
         payload = {
-            "sub": "admin", "role": "admin",
+            "sub": "admin",
+            "role": "admin",
             "iat": now - datetime.timedelta(seconds=1000),
             "exp": now - datetime.timedelta(seconds=10),
-            "jti": "expired-jti-001"
+            "jti": "expired-jti-001",
         }
         expired_token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
         result = main.verify_jwt(expired_token)
@@ -123,8 +127,12 @@ class TestTokenRevocation:
     def test_wrong_algorithm_rejected(self):
         """CWE-327: Token signed with wrong algorithm must be rejected."""
         now = __import__("datetime").datetime.now(__import__("datetime").UTC)
-        payload = {"sub": "admin", "role": "admin", "iat": now,
-                   "exp": now + __import__("datetime").timedelta(seconds=900)}
+        payload = {
+            "sub": "admin",
+            "role": "admin",
+            "iat": now,
+            "exp": now + __import__("datetime").timedelta(seconds=900),
+        }
         # Sign with HS384 instead of HS256
         wrong_algo_token = jwt.encode(payload, JWT_SECRET, algorithm="HS384")
         result = main.verify_jwt(wrong_algo_token)

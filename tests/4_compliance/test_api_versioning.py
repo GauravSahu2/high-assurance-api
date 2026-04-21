@@ -32,15 +32,14 @@ class TestAPIContractStability:
         """API Design: All errors must use the same response shape."""
         # Collect various error responses
         errors = [
-            client.get("/nonexistent"),                                         # 404
-            client.post("/transfer", json={}),                                  # 401
-            client.post("/login", json={"username": 123, "password": 456}),     # 400
+            client.get("/nonexistent"),  # 404
+            client.post("/transfer", json={}),  # 401
+            client.post("/login", json={"username": 123, "password": 456}),  # 400
         ]
         for res in errors:
             data = res.get_json()
             assert data is not None, f"HTTP {res.status_code} must return JSON"
-            assert "error" in data, \
-                f"HTTP {res.status_code} response missing 'error' key: {data}"
+            assert "error" in data, f"HTTP {res.status_code} response missing 'error' key: {data}"
 
     def test_success_responses_have_consistent_shape(self, client):
         """API Design: Success responses must follow a predictable structure."""
@@ -71,15 +70,19 @@ class TestAPIContractStability:
         for path, method in endpoints:
             res = client.open(path, method=method)
             ct = res.headers.get("Content-Type", "")
-            assert "application/json" in ct, \
-                f"{method} {path} missing JSON content type (got: {ct})"
+            assert (
+                "application/json" in ct
+            ), f"{method} {path} missing JSON content type (got: {ct})"
 
     def test_unknown_fields_in_request_body_ignored(self, client):
         """Robustness: Extra fields in requests should not cause errors."""
-        res = client.post("/login", json={
-            "username": "admin",
-            "password": "password123",
-            "extra_field": "should_be_ignored",
-            "version": "v99"
-        })
+        res = client.post(
+            "/login",
+            json={
+                "username": "admin",
+                "password": "password123",
+                "extra_field": "should_be_ignored",
+                "version": "v99",
+            },
+        )
         assert res.status_code == 200, "Extra fields in request should be safely ignored"

@@ -9,6 +9,7 @@ Validates:
   • Outbox events can be aged out per retention policy
   • Account data can be identified per user for GDPR requests
 """
+
 from datetime import UTC, datetime, timedelta
 
 import main
@@ -23,8 +24,10 @@ class TestDataRetentionPolicy:
     def test_idempotency_purge_function_exists(self):
         """SOC 2 CC6.5: Data lifecycle management must be implemented."""
         from main import purge_expired_idempotency_keys
-        assert callable(purge_expired_idempotency_keys), \
-            "purge_expired_idempotency_keys function must exist"
+
+        assert callable(
+            purge_expired_idempotency_keys
+        ), "purge_expired_idempotency_keys function must exist"
 
     def test_expired_idempotency_keys_are_purged(self, client):
         """GDPR Art.5: Stale records must be automatically cleaned."""
@@ -67,7 +70,9 @@ class TestDataRetentionPolicy:
 
             deleted = purge_expired_idempotency_keys(db)
 
-            remaining = db.query(IdempotencyKey).filter_by(idempotency_key="recent:test:key").first()
+            remaining = (
+                db.query(IdempotencyKey).filter_by(idempotency_key="recent:test:key").first()
+            )
             assert remaining is not None, "Recent keys must NOT be purged"
         finally:
             # Clean up

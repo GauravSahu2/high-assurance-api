@@ -6,7 +6,6 @@ Proves that metadata endpoints and private ranges are unreachable.
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from egress_client import SSRFError, safe_get
 
 
@@ -72,9 +71,11 @@ def test_ssrf_error_is_value_error_subclass():
     """SSRFError must be a ValueError so callers can catch it generically."""
     assert issubclass(SSRFError, ValueError)
 
+
 def test_dns_resolution_failure():
     """Simulate a DNS lookup failure (socket.gaierror)."""
     import socket
+
     with patch("egress_client.socket.getaddrinfo", side_effect=socket.gaierror):
         with pytest.raises(SSRFError, match="resol"):
             safe_get("https://unresolvable-host.internal/api")

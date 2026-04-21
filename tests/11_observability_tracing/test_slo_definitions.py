@@ -6,6 +6,7 @@ These tests validate that:
     2. Error budget calculator produces accurate results
     3. The API performance meets SLO thresholds
 """
+
 from __future__ import annotations
 
 import os
@@ -87,9 +88,11 @@ def test_slo_thresholds_are_sane():
 def test_api_health_endpoint_meets_latency_slo(client):
     """Verify the /health endpoint responds within latency SLO."""
     import time
+
     start = time.perf_counter()
     res = client.get("/health")
     elapsed_ms = (time.perf_counter() - start) * 1000
     assert res.status_code == 200
-    assert elapsed_ms < LATENCY_THRESHOLD_MS, \
-        f"Health endpoint took {elapsed_ms:.1f}ms — exceeds {LATENCY_THRESHOLD_MS}ms SLO"
+    assert (
+        elapsed_ms < LATENCY_THRESHOLD_MS
+    ), f"Health endpoint took {elapsed_ms:.1f}ms — exceeds {LATENCY_THRESHOLD_MS}ms SLO"

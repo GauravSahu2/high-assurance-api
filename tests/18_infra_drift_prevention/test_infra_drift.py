@@ -7,9 +7,7 @@ def remediate_drift(ec2_client, group_id: str, expected_ports: set):
     for rule in response["SecurityGroups"][0].get("IpPermissions", []):
         from_port = rule.get("FromPort")
         if from_port not in expected_ports:
-            ec2_client.revoke_security_group_ingress(
-                GroupId=group_id, IpPermissions=[rule]
-            )
+            ec2_client.revoke_security_group_ingress(GroupId=group_id, IpPermissions=[rule])
 
 
 @mock_aws
@@ -38,11 +36,8 @@ def test_infrastructure_drift_remediation():
 
     response = ec2.describe_security_groups(GroupIds=[sg["GroupId"]])
     actual_ports = {
-        rule["FromPort"]
-        for rule in response["SecurityGroups"][0].get("IpPermissions", [])
+        rule["FromPort"] for rule in response["SecurityGroups"][0].get("IpPermissions", [])
     }
 
     drift = actual_ports - expected_ports
-    assert (
-        drift == set()
-    ), f"Drift Remediation failed! Unauthorized ports remain: {drift}"
+    assert drift == set(), f"Drift Remediation failed! Unauthorized ports remain: {drift}"

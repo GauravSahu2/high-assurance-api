@@ -28,5 +28,9 @@ def test_linear_memory_scaling():
 
     # THE ASSERTION: 10x data should use exactly 10x memory.
     # If it uses significantly more, the code is duplicating data in memory.
-    assert memory_ratio < 15, f"CRITICAL: Space Complexity violation (Memory Leak)! RAM scaled by {memory_ratio:.2f}x."
-    print(f"\n[SUCCESS] Memory allocation scales safely in O(N) space. Peak RAM multiplier: {memory_ratio:.2f}x.")
+    assert (
+        memory_ratio < 15
+    ), f"CRITICAL: Space Complexity violation (Memory Leak)! RAM scaled by {memory_ratio:.2f}x."
+    print(
+        f"\n[SUCCESS] Memory allocation scales safely in O(N) space. Peak RAM multiplier: {memory_ratio:.2f}x."
+    )

@@ -42,4 +42,6 @@ def test_prevent_intern_mistakes():
     response = db.execute_query("DROP TABLE old_legacy_logs;")
     assert "SUCCESS" in response, "CRITICAL FAIL: System blocked a safe, backed-up operation."
 
-    print("\n[SUCCESS] Operational Guardrails active. Destructive DB actions require fresh snapshots.")
+    print(
+        "\n[SUCCESS] Operational Guardrails active. Destructive DB actions require fresh snapshots."
+    )

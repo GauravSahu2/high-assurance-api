@@ -1,8 +1,7 @@
 import importlib
 
-import pytest
-
 import main
+import pytest
 from main import get_db
 
 
@@ -15,6 +14,7 @@ def test_get_db_yield_and_close():
     # Asking for the next item forces the generator to finish and run the finally block
     with pytest.raises(StopIteration):
         next(gen)
+
 
 def test_inline_metric_duplicate_coverage():
     """

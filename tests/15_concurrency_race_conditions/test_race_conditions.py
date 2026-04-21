@@ -8,6 +8,7 @@ actual Flask application and database.
 Previous version tested an in-memory dict — this version tests
 the real transfer endpoint's ACID guarantees.
 """
+
 from __future__ import annotations
 
 import concurrent.futures
@@ -41,13 +42,16 @@ def test_prevent_double_spend():
         result1 = future1.result()
         result2 = future2.result()
 
-    assert (result1 and not result2) or (not result1 and result2), \
-        "CRITICAL: Double Spend attack succeeded!"
-    assert DATABASE["account_123_balance"] == 0, \
-        f"CRITICAL: Database corruption! Balance is {DATABASE['account_123_balance']}"
+    assert (result1 and not result2) or (
+        not result1 and result2
+    ), "CRITICAL: Double Spend attack succeeded!"
+    assert (
+        DATABASE["account_123_balance"] == 0
+    ), f"CRITICAL: Database corruption! Balance is {DATABASE['account_123_balance']}"
 
 
 # ── Real API Integration Layer ────────────────────────────────────────────────
+
 
 def test_api_prevents_double_spend_via_idempotency(client, auth_header):
     """Verify the real API rejects duplicate transfers via idempotency keys.
@@ -64,8 +68,9 @@ def test_api_prevents_double_spend_via_idempotency(client, auth_header):
 
     # Second transfer with same idempotency key should be rejected
     res2 = client.post("/transfer", json=payload, headers=headers)
-    assert res2.status_code == 409, \
-        "CRITICAL: Idempotency key did not prevent duplicate transaction!"
+    assert (
+        res2.status_code == 409
+    ), "CRITICAL: Idempotency key did not prevent duplicate transaction!"
 
 
 def test_api_prevents_overdraft(client, auth_header):

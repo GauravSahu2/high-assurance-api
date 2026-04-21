@@ -10,6 +10,7 @@ Validates:
   • Password verification never logs plaintext passwords
   • Hash rounds are appropriate for the environment
 """
+
 import os
 
 from main import DUMMY_HASH, USERS, _hp, _vp
@@ -48,7 +49,9 @@ class TestPasswordHashing:
         """PCI 8.2.1: Each user must have a unique salt."""
         hashes = [data["password_hash"] for data in USERS.values()]
         # bcrypt auto-salts, so even identical passwords produce different hashes
-        assert len(set(hashes)) == len(hashes), "Password hashes should be unique per user (unique salts)"
+        assert len(set(hashes)) == len(
+            hashes
+        ), "Password hashes should be unique per user (unique salts)"
 
 
 class TestPasswordPolicyRequirements:
@@ -81,5 +84,4 @@ class TestPasswordPolicyRequirements:
             parts = data["password_hash"].split("$")
             cost = int(parts[2])
             min_cost = 4 if os.environ.get("TEST_MODE") else 12
-            assert cost >= min_cost, \
-                f"bcrypt cost for {user} is {cost}, minimum is {min_cost}"
+            assert cost >= min_cost, f"bcrypt cost for {user} is {cost}, minimum is {min_cost}"

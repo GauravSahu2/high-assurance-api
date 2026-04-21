@@ -2,7 +2,6 @@ import inspect
 from unittest.mock import patch
 
 import pytest
-
 from main import app, redis_client, verify_jwt
 
 
@@ -34,16 +33,12 @@ def test_hundred_percent_coverage(sniper_client):
     sniper_client.post("/login", json={"username": "admin", "password": "bad"})
     redis_client.delete("lockout:user:admin")
 
-    res = sniper_client.post(
-        "/login", json={"username": "admin", "password": "password123"}
-    )
+    res = sniper_client.post("/login", json={"username": "admin", "password": "password123"})
     token = res.get_json()["token"]
     h = {"Authorization": f"Bearer {token}"}
 
     sniper_client.post("/transfer", json={})
-    sniper_client.post(
-        "/transfer", data="BAD", content_type="application/json", headers=h
-    )
+    sniper_client.post("/transfer", data="BAD", content_type="application/json", headers=h)
     sniper_client.get("/api/users/user_1")
     sniper_client.get("/api/users/ghost", headers=h)
     sniper_client.get("/api/accounts/ghost/balance", headers=h)
@@ -56,5 +51,6 @@ def test_hundred_percent_coverage(sniper_client):
 
 def test_app_run_block_is_guarded():
     import main as m
+
     _ = inspect.getsource(m)
     pass

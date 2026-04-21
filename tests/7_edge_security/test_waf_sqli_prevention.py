@@ -39,7 +39,12 @@ def test_waf_sqli_rule_creation_and_attachment(aws_credentials):
             {
                 "Name": "AWS-AWSManagedRulesSQLiRuleSet",
                 "Priority": 0,
-                "Statement": {"ManagedRuleGroupStatement": {"VendorName": "AWS", "Name": "AWSManagedRulesSQLiRuleSet"}},
+                "Statement": {
+                    "ManagedRuleGroupStatement": {
+                        "VendorName": "AWS",
+                        "Name": "AWSManagedRulesSQLiRuleSet",
+                    }
+                },
                 "Action": {"Block": {}},  # If SQLi detected, BLOCK it
                 "VisibilityConfig": {
                     "SampledRequestsEnabled": True,

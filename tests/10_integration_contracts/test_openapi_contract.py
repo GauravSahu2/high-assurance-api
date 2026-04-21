@@ -1,8 +1,8 @@
 import schemathesis
-
 from main import app
 
 schema = schemathesis.openapi.from_path("openapi.yaml")
+
 
 @schema.parametrize()
 def test_api_conforms_to_openapi_spec(case):

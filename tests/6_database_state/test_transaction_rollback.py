@@ -32,5 +32,7 @@ def test_atomic_rollback_on_failure():
     cursor.execute("SELECT balance FROM accounts WHERE id = 'UserA'")
     final_balance_a = cursor.fetchone()[0]
 
-    assert final_balance_a == 100.0, "CRITICAL: ACID properties violated. Data corruption occurred!"
+    assert (
+        final_balance_a == 100.0
+    ), "CRITICAL: ACID properties violated. Data corruption occurred!"
     print("\n[SUCCESS] Transaction rolled back safely. Database state remains uncorrupted.")

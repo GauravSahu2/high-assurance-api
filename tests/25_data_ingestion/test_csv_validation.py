@@ -5,7 +5,6 @@ Tests for CSV injection sanitisation and Pandera schema validation.
 import io
 
 import pytest
-
 from csv_validator import validate_and_sanitize_csv
 
 
@@ -14,6 +13,7 @@ def _make_csv(rows: list[str], header: str = "user_id,amount,description") -> by
 
 
 # ── Injection sanitisation ────────────────────────────────────────────────────
+
 
 def test_strips_equals_injection():
     """=cmd|' /C calc' must be stripped to cmd|' /C calc'."""
@@ -61,6 +61,7 @@ def test_clean_row_passes_unchanged():
 
 # ── Pandera schema validation ─────────────────────────────────────────────────
 
+
 def test_rejects_negative_amount():
     """Negative amount must fail schema validation."""
     csv = _make_csv(["user_1,-50.0,test"])
@@ -103,6 +104,7 @@ def test_rejects_malformed_csv():
 
 
 # ── Upload endpoint integration ───────────────────────────────────────────────
+
 
 def test_upload_endpoint_accepts_valid_csv(client, auth_header):
     """The /upload-dataset endpoint must accept a clean CSV and return row count."""
@@ -178,9 +180,11 @@ def test_upload_endpoint_rejects_missing_file(client, auth_header):
     )
     assert res.status_code == 400
 
+
 def test_csv_parser_exception():
     """Simulate a catastrophic failure in the underlying CSV parsing engine."""
     from unittest.mock import patch
+
     with patch("csv_validator.pd.read_csv", side_effect=Exception("Simulated crash")):
         with pytest.raises(ValueError, match="Failed to parse CSV"):
             validate_and_sanitize_csv(b"user_id,amount\n1,10.0")

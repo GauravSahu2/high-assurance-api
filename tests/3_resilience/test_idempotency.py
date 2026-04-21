@@ -34,6 +34,8 @@ def test_idempotency_network_glitch():
     # Both should return 200 OK so the app doesn't crash, BUT balance should only drop by 500, not 1000.
     assert status1 == 200
     assert status2 == 200
-    assert ACCOUNT_BALANCE == 500, f"CRITICAL: Double charge occurred! Balance is {ACCOUNT_BALANCE}"
+    assert (
+        ACCOUNT_BALANCE == 500
+    ), f"CRITICAL: Double charge occurred! Balance is {ACCOUNT_BALANCE}"
 
     print("\n[SUCCESS] Idempotency enforced. Network retry did not result in a double charge.")

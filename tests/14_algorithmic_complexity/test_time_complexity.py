@@ -34,4 +34,6 @@ def test_linear_time_scaling():
     assert (
         scaling_ratio < 25
     ), f"CRITICAL: CPU Time Complexity violation! Execution scaled exponentially by {scaling_ratio:.2f}x."
-    print(f"\n[SUCCESS] CPU Execution scales safely in O(N) time. Scale multiplier: {scaling_ratio:.2f}x.")
+    print(
+        f"\n[SUCCESS] CPU Execution scales safely in O(N) time. Scale multiplier: {scaling_ratio:.2f}x."
+    )
