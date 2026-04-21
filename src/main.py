@@ -58,7 +58,7 @@ from telemetry import init_telemetry
 def create_app() -> Flask:
     """
     Application factory pattern for the Flask app.
-    
+
     Validated by the 32-Tier Gauntlet ensuring 100% coverage across:
     - Functional (Unit/Integration)
     - Security (BOLA/XSS/Timing)
