@@ -47,10 +47,10 @@ from auth import (
 )
 from config import ALLOWED_ORIGINS, TEST_MODE
 from database import Base, SessionLocal, engine, get_db
-from models import Account
+from models import Account, IdempotencyKey, OutboxEvent
 from routes import register_blueprints
 from routes.transfer_routes import purge_expired_idempotency_keys
-from security import apply_security_headers
+from security import JWT_SECRET, apply_security_headers
 from telemetry import init_telemetry
 
 
