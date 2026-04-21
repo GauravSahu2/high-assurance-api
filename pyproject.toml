@@ -61,6 +61,9 @@ extend-ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "S106", "S105", "E501"]
 "src/main.py" = ["E402", "F401"]
+"hsa-reporter.py" = ["E501", "E722"]
+"scripts/*.py" = ["E501", "S112", "RUF001"]
+"migrations/**/*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
