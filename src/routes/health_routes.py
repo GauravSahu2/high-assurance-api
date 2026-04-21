@@ -7,23 +7,24 @@ Endpoints:
     - /metrics : Prometheus metrics endpoint
     - /openapi.yaml : OpenAPI specification
 """
+
 from __future__ import annotations
 
 import os
 import random
 import time
 
-from flask import Blueprint, jsonify, request
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-
 from database import get_db
+from flask import Blueprint, jsonify, request
 from models import Account
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 health_bp = Blueprint("health", __name__)
 
 
 def _get_redis():
     import main
+
     return main.redis_client
 
 
@@ -64,22 +65,32 @@ def health():
     try:
         redis_client.ping()
     except Exception:
-        return jsonify({
-            "status": "degraded",
-            "infrastructure": "unreachable",
-            "rollback_flag": True,
-        }), 503
+        return (
+            jsonify(
+                {
+                    "status": "degraded",
+                    "infrastructure": "unreachable",
+                    "rollback_flag": True,
+                }
+            ),
+            503,
+        )
 
     # Database probe
     try:
         db = next(get_db())
         db.query(Account).first()
     except Exception:
-        return jsonify({
-            "status": "degraded",
-            "infrastructure": "unreachable",
-            "rollback_flag": True,
-        }), 503
+        return (
+            jsonify(
+                {
+                    "status": "degraded",
+                    "infrastructure": "unreachable",
+                    "rollback_flag": True,
+                }
+            ),
+            503,
+        )
 
     return jsonify({"status": "ok", "timestamp": time.time()})
 

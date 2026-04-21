@@ -6,14 +6,14 @@ Security:
     - BOLA (Broken Object-Level Authorization) protection:
       users can only access their own data unless they have admin role
 """
+
 from __future__ import annotations
 
 import os
 
-from flask import Blueprint, jsonify, request
-
 from auth import USERS, extract_bearer_token, verify_jwt
 from database import get_db
+from flask import Blueprint, jsonify, request
 from models import Account, IdempotencyKey, OutboxEvent
 from routes.transfer_routes import purge_expired_idempotency_keys
 
@@ -22,6 +22,7 @@ admin_bp = Blueprint("admin", __name__)
 
 def _get_redis():
     import main
+
     return main.redis_client
 
 
@@ -123,5 +124,6 @@ def reset_state():
     db.commit()
 
     import main
+
     main.init_db()
     return jsonify({"status": "test_state_reset"})

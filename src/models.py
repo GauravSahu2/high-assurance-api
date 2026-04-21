@@ -8,13 +8,13 @@ Design Decisions:
     - OutboxEvent implements the Transactional Outbox pattern for
       reliable event publishing without distributed transactions.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, Column, DateTime, Integer, Numeric, String
-
 from database import Base
+from sqlalchemy import JSON, Column, DateTime, Integer, Numeric, String
 
 
 class Account(Base):

@@ -13,21 +13,22 @@ DATASET_SCHEMA = DataFrameSchema(
         "user_id": Column(
             str,
             Check(lambda s: s.str.len() > 0, error="user_id must be non-empty"),
-            nullable=False
+            nullable=False,
         ),
         "amount": Column(
             float,
             [
                 Check(lambda s: s >= 0, error="amount must be non-negative"),
-                Check(lambda s: s <= 1000000, error="amount exceeds cap")
+                Check(lambda s: s <= 1000000, error="amount exceeds cap"),
             ],
-            nullable=False
+            nullable=False,
         ),
         "description": Column(str, nullable=True, required=False),
     },
     strict=False,
     coerce=True,
 )
+
 
 def validate_and_sanitize_csv(raw_bytes: bytes) -> pd.DataFrame:
     if len(raw_bytes) > MAX_FILE_BYTES:

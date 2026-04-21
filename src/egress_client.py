@@ -24,7 +24,7 @@ _BLOCKED_NETWORKS = [
 
 # Explicit hostname blocklist on top of the network check
 _BLOCKED_HOSTS = {
-    "169.254.169.254",   # AWS IMDS v1
+    "169.254.169.254",  # AWS IMDS v1
     "metadata.google.internal",
     "metadata.azure.com",
 }

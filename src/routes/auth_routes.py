@@ -7,13 +7,12 @@ Security controls:
     - Constant-time password verification (DUMMY_HASH for unknown users)
     - JWT JTI revocation on logout via Redis blacklist
 """
+
 from __future__ import annotations
 
 import time
 
 import redis as redis_lib
-from flask import Blueprint, jsonify, request
-
 from auth import (
     DUMMY_HASH,
     USERS,
@@ -23,6 +22,7 @@ from auth import (
     verify_password,
 )
 from config import LOCKOUT_TTL_SECONDS, MAX_LOGIN_ATTEMPTS
+from flask import Blueprint, jsonify, request
 from logger import logger
 
 auth_bp = Blueprint("auth", __name__)
@@ -31,12 +31,14 @@ auth_bp = Blueprint("auth", __name__)
 def _get_redis():
     """Lazy import to avoid circular dependency."""
     import main
+
     return main.redis_client
 
 
 def _get_tracer():
     """Lazy import to avoid circular dependency."""
     import main
+
     return main.hsa_tracer
 
 
@@ -56,7 +58,9 @@ def login():
     except redis_lib.RedisError:
         return jsonify({"error": "service temporarily degraded"}), 503
 
-    with hsa_tracer.start_as_current_span("login.authenticate", attributes={"login.ip": ip}) as span:
+    with hsa_tracer.start_as_current_span(
+        "login.authenticate", attributes={"login.ip": ip}
+    ) as span:
         body = request.get_json(silent=True)
         if not isinstance(body, dict):
             span.set_attribute("login.result", "bad_request")
@@ -102,12 +106,14 @@ def login():
         return jsonify({"error": "service temporarily degraded"}), 503
 
     token = generate_jwt(username, USERS[username]["role"])
-    return jsonify({
-        "token": token,
-        "access_token": token,
-        "token_type": "bearer",
-        "expires_in": 900,
-    })
+    return jsonify(
+        {
+            "token": token,
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in": 900,
+        }
+    )
 
 
 @auth_bp.route("/logout", methods=["POST"])

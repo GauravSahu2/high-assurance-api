@@ -7,17 +7,17 @@ Architecture:
     - Outbox pattern ensures reliable event publishing
     - Decimal arithmetic for financial precision
 """
+
 from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
-from flask import Blueprint, jsonify, request
-
 from auth import extract_bearer_token, verify_jwt
 from config import TRANSFER_MAX, TRANSFER_MIN
 from database import get_db
+from flask import Blueprint, jsonify, request
 from models import Account, IdempotencyKey, OutboxEvent
 
 transfer_bp = Blueprint("transfer", __name__)
@@ -25,11 +25,13 @@ transfer_bp = Blueprint("transfer", __name__)
 
 def _get_redis():
     import main
+
     return main.redis_client
 
 
 def _get_tracer():
     import main
+
     return main.hsa_tracer
 
 
@@ -118,17 +120,21 @@ def transfer():
 
             # Record idempotency key
             if scoped:
-                db.add(IdempotencyKey(
-                    idempotency_key=scoped,
-                    status="processed",
-                    response_body={"status": "transferred"},
-                ))
+                db.add(
+                    IdempotencyKey(
+                        idempotency_key=scoped,
+                        status="processed",
+                        response_body={"status": "transferred"},
+                    )
+                )
 
             # Append audit event (Transactional Outbox)
-            db.add(OutboxEvent(
-                event_type="FUNDS_TRANSFERRED",
-                payload={"from": username, "to": to_user, "amount": amount},
-            ))
+            db.add(
+                OutboxEvent(
+                    event_type="FUNDS_TRANSFERRED",
+                    payload={"from": username, "to": to_user, "amount": amount},
+                )
+            )
 
             db.commit()
             new_balance = float(sender.balance)
@@ -139,11 +145,13 @@ def transfer():
             db.rollback()
             return jsonify({"error": "transaction failed"}), 500
 
-        return jsonify({
-            "status": "transferred",
-            "new_balance": new_balance,
-            "transaction_id": str(uuid.uuid4()),
-        })
+        return jsonify(
+            {
+                "status": "transferred",
+                "new_balance": new_balance,
+                "transaction_id": str(uuid.uuid4()),
+            }
+        )
 
 
 def purge_expired_idempotency_keys(db) -> int:

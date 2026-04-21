@@ -6,6 +6,7 @@ Security design:
     - Constant-time comparison via DUMMY_HASH to prevent user enumeration
     - JWT tokens include JTI for revocation support via Redis
 """
+
 from __future__ import annotations
 
 import time
@@ -14,7 +15,6 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt as pyjwt
-
 from config import (
     BCRYPT_ROUNDS_PROD,
     BCRYPT_ROUNDS_TEST,
@@ -100,7 +100,7 @@ def extract_bearer_token(header: str | None) -> str | None:
 # Pre-computed hashes at module load time.
 # In production, users would be database-backed.
 USERS: dict[str, dict] = {
-    "admin":  {"password_hash": hash_password("password123"), "role": "admin"},
+    "admin": {"password_hash": hash_password("password123"), "role": "admin"},
     "user_1": {"password_hash": hash_password("password111"), "role": "user"},
     "user_2": {"password_hash": hash_password("password222"), "role": "user"},
 }

@@ -3,6 +3,7 @@ Security module — HTTP response hardening and JWT configuration.
 
 All security headers comply with OWASP Secure Headers Project recommendations.
 """
+
 from __future__ import annotations
 
 import os
@@ -13,7 +14,10 @@ from flask import Response
 JWT_SECRET: str = os.environ.get("JWT_SECRET", "dev-secret-key")
 
 if len(JWT_SECRET) < 48 and not os.environ.get("TEST_MODE"):
-    raise ValueError("JWT_SECRET must be at least 48 bytes for HS384 requirements!")  # pragma: no cover
+    raise ValueError(
+        "JWT_SECRET must be at least 48 bytes for HS384 requirements!"
+    )  # pragma: no cover
+
 
 def apply_security_headers(response: Response) -> Response:
     """Apply OWASP-recommended security headers to every HTTP response.
@@ -45,13 +49,16 @@ def apply_security_headers(response: Response) -> Response:
 # These are thin re-exports so tests that do `from security import generate_jwt`
 # continue to work after the refactor to auth.py.
 
+
 def generate_jwt(user_id: str, role: str = "user") -> str:
     """Generate a JWT token. Delegates to auth.generate_jwt."""
     from auth import generate_jwt as _gen
+
     return _gen(user_id, role)
 
 
 def decode_jwt(token: str) -> dict | None:
     """Decode a JWT token. Delegates to auth.verify_jwt."""
     from auth import verify_jwt as _ver
+
     return _ver(token)

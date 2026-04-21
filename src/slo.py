@@ -7,6 +7,7 @@ monitored in production via Prometheus + Grafana alerting.
 
 Reference: Google SRE Book, Chapter 4 — Service Level Objectives
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,12 +16,13 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class SLO:
     """A Service Level Objective definition."""
+
     name: str
     description: str
-    target: float          # Target percentage (e.g., 99.9)
-    window_days: int       # Rolling window (e.g., 30)
-    sli_query: str         # Prometheus PromQL for the SLI
-    error_budget: float    # Derived: 100 - target
+    target: float  # Target percentage (e.g., 99.9)
+    window_days: int  # Rolling window (e.g., 30)
+    sli_query: str  # Prometheus PromQL for the SLI
+    error_budget: float  # Derived: 100 - target
 
     @property
     def error_budget_minutes_per_month(self) -> float:
@@ -37,7 +39,7 @@ AVAILABILITY_SLO = SLO(
     window_days=30,
     sli_query=(
         '1 - (sum(rate(flask_http_request_total{status=~"5.."}[5m])) '
-        '/ sum(rate(flask_http_request_total[5m])))'
+        "/ sum(rate(flask_http_request_total[5m])))"
     ),
     error_budget=0.1,
 )
@@ -48,7 +50,7 @@ LATENCY_SLO = SLO(
     target=95.0,
     window_days=30,
     sli_query=(
-        'histogram_quantile(0.95, '
+        "histogram_quantile(0.95, "
         'rate(http_request_duration_seconds_bucket{endpoint="/transfer"}[5m]))'
     ),
     error_budget=5.0,
@@ -56,7 +58,7 @@ LATENCY_SLO = SLO(
 
 LATENCY_THRESHOLD_MS: float = 500.0  # p95 must be under 500ms
 
-ERROR_RATE_THRESHOLD: float = 0.01   # Max 1% error rate before alerting
+ERROR_RATE_THRESHOLD: float = 0.01  # Max 1% error rate before alerting
 
 # ── All SLOs (used by tests and monitoring) ───────────────────────────────────
 ALL_SLOS: list[SLO] = [AVAILABILITY_SLO, LATENCY_SLO]
@@ -84,5 +86,9 @@ def check_error_budget_remaining(
         "error_rate": round(error_rate * 100, 4),
         "budget_consumed_pct": round(budget_consumed_pct, 2),
         "budget_remaining_pct": round(budget_remaining_pct, 2),
-        "status": "healthy" if budget_remaining_pct > 20 else "warning" if budget_remaining_pct > 0 else "breached",
+        "status": (
+            "healthy"
+            if budget_remaining_pct > 20
+            else "warning" if budget_remaining_pct > 0 else "breached"
+        ),
     }

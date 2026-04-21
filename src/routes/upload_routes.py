@@ -8,20 +8,21 @@ Security:
     - Pandera schema validation
     - CSV injection sanitization (=, +, -, @, \\t, \\r prefix stripping)
 """
+
 from __future__ import annotations
 
 import os
 
-from flask import Blueprint, jsonify, request
-
 from auth import extract_bearer_token, verify_jwt
 from config import MAX_UPLOAD_SIZE_BYTES
+from flask import Blueprint, jsonify, request
 
 upload_bp = Blueprint("upload", __name__)
 
 
 def _get_redis():
     import main
+
     return main.redis_client
 
 
@@ -67,13 +68,19 @@ def upload_dataset():
     # Schema validation
     try:
         from csv_validator import validate_and_sanitize_csv
+
         validate_and_sanitize_csv(file.read())
     except ValueError as e:
         return jsonify({"error": str(e)}), 422
     except Exception:
         pass
 
-    return jsonify({
-        "message": f"Successfully received {file.filename}",
-        "status": "processing",
-    }), 202
+    return (
+        jsonify(
+            {
+                "message": f"Successfully received {file.filename}",
+                "status": "processing",
+            }
+        ),
+        202,
+    )
