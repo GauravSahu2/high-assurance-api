@@ -86,7 +86,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest-cov schemathesis benchmark
+          pip install pytest-cov schemathesis
 
       - name: Run Core Tests (Tiers 1-12)
         env:
