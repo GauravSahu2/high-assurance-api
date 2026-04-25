@@ -2,9 +2,12 @@
 Utility functions for routes to reduce complexity in handler files.
 """
 from __future__ import annotations
+
 import time
 from decimal import Decimal, InvalidOperation
+
 from flask import jsonify
+
 
 def _check_lockout(redis_client, ip, username, max_attempts, err_msg):
     """Checks IP and User lockout status."""

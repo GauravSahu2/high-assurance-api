@@ -10,9 +10,6 @@ Security controls:
 
 from __future__ import annotations
 
-import time
-
-import redis as redis_lib
 from flask import Blueprint, jsonify, request
 
 from auth import (
@@ -25,7 +22,6 @@ from auth import (
 )
 from config import LOCKOUT_TTL_SECONDS, MAX_LOGIN_ATTEMPTS
 from logger import logger
-
 from routes.route_utils import _check_lockout, _revoke_jti, _update_lockout
 
 auth_bp = Blueprint("auth", __name__)

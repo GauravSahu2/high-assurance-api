@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, jsonify, request
 
@@ -20,7 +19,6 @@ from auth import extract_bearer_token, verify_jwt
 from config import TRANSFER_MAX, TRANSFER_MIN
 from database import get_db
 from models import Account, IdempotencyKey, OutboxEvent
-
 from routes.route_utils import _validate_transfer_request
 
 transfer_bp = Blueprint("transfer", __name__)
@@ -96,9 +94,20 @@ def transfer():
                 return jsonify({"error": err}), status
 
             if scoped:
-                db.add(IdempotencyKey(idempotency_key=scoped, status="processed", response_body={"status": "transferred"}))
+                db.add(
+                    IdempotencyKey(
+                        idempotency_key=scoped,
+                        status="processed",
+                        response_body={"status": "transferred"},
+                    )
+                )
 
-            db.add(OutboxEvent(event_type="FUNDS_TRANSFERRED", payload={"from": username, "to": to_user, "amount": amount}))
+            db.add(
+                OutboxEvent(
+                    event_type="FUNDS_TRANSFERRED",
+                    payload={"from": username, "to": to_user, "amount": amount},
+                )
+            )
             db.commit()
             new_balance = float(sender.balance)
             txn_span.set_attribute("transfer.result", "success")
