@@ -165,7 +165,7 @@ jobs:
       - name: Generate SonarCloud Report
         run: |
           pip install requests
-          python src/sonar_report_fetcher.py
+          python scripts/sonar_report_fetcher.py
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
