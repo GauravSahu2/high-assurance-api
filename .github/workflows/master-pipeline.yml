@@ -155,9 +155,26 @@ jobs:
       - name: "Quality Gate — SonarCloud"
         uses: SonarSource/sonarcloud-github-action@master
         continue-on-error: true
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Generate SonarCloud Report
+        run: |
+          pip install requests
+          python src/sonar_report_fetcher.py
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Upload SonarCloud Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarcloud-audit-report
+          path: sonar_report.md
+          retention-days: 7
 
       - name: "IaC — Checkov scan"
         run: |
