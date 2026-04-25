@@ -100,6 +100,17 @@ jobs:
           REDIS_URL: "redis://localhost:6379/0"
         run: pytest -p no:warnings --cov=src -rs
 
+      - name: Verify coverage report exists
+        run: |
+          test -f coverage.xml
+          echo "coverage.xml generated successfully"
+
+      - name: Quality Gate — SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Run 32-tier Validation Gauntlet
         env:
           DATABASE_URL: "sqlite:///./test.db"
@@ -139,13 +150,6 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v4
-
-      - name: "Quality Gate — SonarCloud"
-        uses: SonarSource/sonarcloud-github-action@master
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: "IaC — Checkov scan"
         run: |
