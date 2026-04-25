@@ -68,5 +68,6 @@ def fetch_sonar_metrics():
     except Exception as e:
         print(f"❌ Failed to fetch SonarCloud metrics: {e}")
 
+
 if __name__ == "__main__":
     fetch_sonar_metrics()

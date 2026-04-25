@@ -1,6 +1,7 @@
 """
 Utility functions for routes to reduce complexity in handler files.
 """
+
 from __future__ import annotations
 
 import time
