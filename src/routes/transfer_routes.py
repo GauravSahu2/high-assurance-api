@@ -21,6 +21,8 @@ from config import TRANSFER_MAX, TRANSFER_MIN
 from database import get_db
 from models import Account, IdempotencyKey, OutboxEvent
 
+from routes.route_utils import _validate_transfer_request
+
 transfer_bp = Blueprint("transfer", __name__)
 
 
@@ -36,34 +38,27 @@ def _get_tracer():
     return main.hsa_tracer
 
 
-def _validate_transfer_request(body, claims):
-    """Validates the transfer request body and parameters."""
-    # Validate amount with Decimal precision
-    try:
-        amt = Decimal(str(body.get("amount")))
-        if amt < Decimal(TRANSFER_MIN) or amt > Decimal(TRANSFER_MAX):
-            return None, "amount out of range or invalid"
-        amount = float(amt)
-    except (InvalidOperation, ValueError, TypeError):
-        return None, "amount out of range or invalid"
+def _perform_transfer_logic(db, username, to_user, amount):
+    """Internal helper to lock accounts and update balances."""
+    accs = db.query(Account).filter(Account.user_id.in_(sorted([username, to_user]))).with_for_update().all()
+    accounts = {a.user_id: a for a in accs}
+    sender, receiver = accounts.get(username), accounts.get(to_user)
 
-    # Validate destination
-    to_user = body.get("to_user")
-    if not isinstance(to_user, str) or not to_user:
-        return None, "missing or invalid destination account"
+    if not (sender and receiver):
+        return None, "account not found", 404
 
-    username = claims["sub"]
-    if username == to_user:
-        return None, "cannot transfer to self"
+    if float(sender.balance) < amount:
+        return None, "insufficient funds", 400
 
-    return (username, to_user, amount), None
+    sender.balance = float(sender.balance) - amount
+    receiver.balance = float(receiver.balance) + amount
+    return sender, None, 200
 
 
 @transfer_bp.route("/transfer", methods=["POST"])
 def transfer():
     """Execute a fund transfer between two accounts."""
-    redis_client = _get_redis()
-    hsa_tracer = _get_tracer()
+    redis_client, hsa_tracer = _get_redis(), _get_tracer()
 
     # Authenticate
     raw = extract_bearer_token(request.headers.get("Authorization"))
@@ -78,7 +73,7 @@ def transfer():
     if not isinstance(body, dict):
         return jsonify({"error": "request body must be a JSON object"}), 400
 
-    params, error_msg = _validate_transfer_request(body, claims)
+    params, error_msg = _validate_transfer_request(body, claims, TRANSFER_MIN, TRANSFER_MAX)
     if error_msg:
         return jsonify({"error": error_msg}), 400
 
@@ -95,46 +90,24 @@ def transfer():
             if scoped and db.query(IdempotencyKey).filter_by(idempotency_key=scoped).first():
                 return jsonify({"error": "duplicate transaction"}), 409
 
-            accs = db.query(Account).filter(Account.user_id.in_(sorted([username, to_user]))).with_for_update().all()
-            accounts = {a.user_id: a for a in accs}
-            sender, receiver = accounts.get(username), accounts.get(to_user)
-
-            if not sender or not receiver:
+            sender, err, status = _perform_transfer_logic(db, username, to_user, amount)
+            if err:
                 db.rollback()
-                return jsonify({"error": "account not found"}), 404
-
-            if float(sender.balance) < amount:
-                db.rollback()
-                return jsonify({"error": "insufficient funds"}), 400
-
-            sender.balance = float(sender.balance) - amount
-            receiver.balance = float(receiver.balance) + amount
+                return jsonify({"error": err}), status
 
             if scoped:
-                db.add(
-                    IdempotencyKey(
-                        idempotency_key=scoped,
-                        status="processed",
-                        response_body={"status": "transferred"},
-                    )
-                )
+                db.add(IdempotencyKey(idempotency_key=scoped, status="processed", response_body={"status": "transferred"}))
 
-            db.add(
-                OutboxEvent(
-                    event_type="FUNDS_TRANSFERRED",
-                    payload={"from": username, "to": to_user, "amount": amount},
-                )
-            )
+            db.add(OutboxEvent(event_type="FUNDS_TRANSFERRED", payload={"from": username, "to": to_user, "amount": amount}))
             db.commit()
             new_balance = float(sender.balance)
             txn_span.set_attribute("transfer.result", "success")
+            return jsonify({"status": "transferred", "new_balance": new_balance, "transaction_id": str(uuid.uuid4())})
 
         except Exception:
             txn_span.set_attribute("transfer.result", "failed")
             db.rollback()
             return jsonify({"error": "transaction failed"}), 500
-
-        return jsonify({"status": "transferred", "new_balance": new_balance, "transaction_id": str(uuid.uuid4())})
 
 
 def purge_expired_idempotency_keys(db) -> int:

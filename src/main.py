@@ -148,34 +148,7 @@ def init_db() -> None:
 init_db()
 
 
-# ── Prometheus Metrics (Singleton Pattern) ────────────────────────────────────
-from prometheus_client import REGISTRY as _PROM_REGISTRY
-
-
-def _get_or_create_counter(name: str, desc: str, labels: list[str]) -> Counter:
-    """Get existing counter or create new one — avoids duplicate registration."""
-    existing = _PROM_REGISTRY._names_to_collectors.get(name)
-    if existing:
-        return existing
-    return Counter(name, desc, labels)
-
-
-def _get_or_create_histogram(name: str, desc: str, labels: list[str]) -> Histogram:
-    """Get existing histogram or create new one — avoids duplicate registration."""
-    existing = _PROM_REGISTRY._names_to_collectors.get(name)
-    if existing:
-        return existing
-    return Histogram(name, desc, labels)
-
-
-flask_http_request_total = _get_or_create_counter(
-    "flask_http_request_total",
-    "Total HTTP requests by method/endpoint/status",
-    ["method", "endpoint", "status"],
-)
-http_request_duration_seconds = _get_or_create_histogram(
-    "http_request_duration_seconds", "Request latency in seconds by endpoint", ["endpoint"]
-)
+from telemetry import flask_http_request_total, http_request_duration_seconds
 
 
 # ── Backward-Compatible verify_jwt (passes redis_client automatically) ───────
@@ -227,18 +200,14 @@ def not_found(_e):
 
 def method_not_allowed(e):
     """405 handler with RFC 9110-compliant Allow header."""
-    from flask import jsonify as _jsonify
-
-    res = _jsonify({"error": "method not allowed"})
+    res = jsonify({"error": "method not allowed"})
     res.status_code = 405
-
     allowed = set(getattr(e, "valid_methods", []) or [])
     if not allowed:
-        for rule in app.url_map.iter_rules():
-            if rule.rule == request.path:
-                allowed.update(rule.methods)
-
-    res.headers["Allow"] = ", ".join(sorted(allowed)) if allowed else "GET, OPTIONS, POST"
+        allowed = set().union(*(rule.methods for rule in app.url_map.iter_rules() if rule.rule == request.path))
+        if not allowed:
+            allowed = {"GET", "OPTIONS", "POST"}
+    res.headers["Allow"] = ", ".join(sorted(allowed))
     return res
 
 

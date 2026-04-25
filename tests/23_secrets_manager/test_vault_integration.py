@@ -30,6 +30,12 @@ def test_get_secret_vault_failure_fallback():
             os.environ,
             {"VAULT_ADDR": "http://vault:8200", "VAULT_TOKEN": "root", "FALLBACK_KEY": "env_val"},
         ):
+            import src.config
+
+            # Force vault config to be set so we enter the try/except block
+            src.config.VAULT_ADDR = "http://vault:8200"
+            src.config.VAULT_TOKEN = "root"
+
             val = get_secret("FALLBACK_KEY")
             assert val == "env_val"
 

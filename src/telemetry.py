@@ -46,3 +46,33 @@ def init_telemetry() -> trace.Tracer:
 
     trace.set_tracer_provider(provider)
     return trace.get_tracer("hsa.tracer", "2.0.0")
+
+
+from prometheus_client import REGISTRY as _PROM_REGISTRY
+from prometheus_client import Counter, Histogram
+
+
+def _get_or_create_counter(name: str, desc: str, labels: list[str]) -> Counter:
+    """Get existing counter or create new one — avoids duplicate registration."""
+    existing = _PROM_REGISTRY._names_to_collectors.get(name)
+    if existing:
+        return existing
+    return Counter(name, desc, labels)
+
+
+def _get_or_create_histogram(name: str, desc: str, labels: list[str]) -> Histogram:
+    """Get existing histogram or create new one — avoids duplicate registration."""
+    existing = _PROM_REGISTRY._names_to_collectors.get(name)
+    if existing:
+        return existing
+    return Histogram(name, desc, labels)
+
+
+flask_http_request_total = _get_or_create_counter(
+    "flask_http_request_total",
+    "Total HTTP requests by method/endpoint/status",
+    ["method", "endpoint", "status"],
+)
+http_request_duration_seconds = _get_or_create_histogram(
+    "http_request_duration_seconds", "Request latency in seconds by endpoint", ["endpoint"]
+)

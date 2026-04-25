@@ -26,6 +26,8 @@ from auth import (
 from config import LOCKOUT_TTL_SECONDS, MAX_LOGIN_ATTEMPTS
 from logger import logger
 
+from routes.route_utils import _check_lockout, _revoke_jti, _update_lockout
+
 auth_bp = Blueprint("auth", __name__)
 
 
@@ -54,58 +56,38 @@ def login():
     hsa_tracer = _get_tracer()
 
     ip = request.remote_addr or "unknown"
-    lockout_ip_key = f"lockout:ip:{ip}"
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        return jsonify({"error": "request body must be a JSON object"}), 400
 
-    # Check IP-level lockout
-    try:
-        if int(redis_client.get(lockout_ip_key) or 0) >= MAX_LOGIN_ATTEMPTS:
-            return jsonify({"error": "too many failed attempts"}), 429
-    except redis_lib.RedisError:
-        return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
+    username = body.get("username", "")
+    password = body.get("password", "")
 
-    with hsa_tracer.start_as_current_span("login.authenticate", attributes={"login.ip": ip}) as span:
-        body = request.get_json(silent=True)
-        if not isinstance(body, dict):
-            span.set_attribute("login.result", "bad_request")
-            return jsonify({"error": "request body must be a JSON object"}), 400
+    if not isinstance(username, str) or not isinstance(password, str):
+        return jsonify({"error": "invalid payload types"}), 400
 
-        username = body.get("username", "")
-        password = body.get("password", "")
-        span.set_attribute("login.user", username)
+    # Lockout check
+    is_locked, resp, status = _check_lockout(redis_client, ip, username, MAX_LOGIN_ATTEMPTS, ERR_SERVICE_DEGRADED)
+    if is_locked:
+        return resp, status
 
-        if not isinstance(username, str) or not isinstance(password, str):
-            span.set_attribute("login.result", "invalid_types")
-            return jsonify({"error": "invalid payload types"}), 400
-
-    # Check user-level lockout
-    lockout_user_key = f"lockout:user:{username}"
-    try:
-        if int(redis_client.get(lockout_user_key) or 0) >= MAX_LOGIN_ATTEMPTS:
-            return jsonify({"error": "too many failed attempts"}), 429
-    except redis_lib.RedisError:
-        return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
-
-    # Verify credentials (constant-time for non-existent users)
-    user = USERS.get(username)
-    hashed = user["password_hash"] if user else DUMMY_HASH
-    is_valid = verify_password(password, hashed)
-
-    if not user or not is_valid:
-        try:
-            redis_client.incr(lockout_ip_key)
-            redis_client.expire(lockout_ip_key, LOCKOUT_TTL_SECONDS)
-            redis_client.incr(lockout_user_key)
-            redis_client.expire(lockout_user_key, LOCKOUT_TTL_SECONDS)
-        except redis_lib.RedisError:
-            return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
-        logger.warning("authentication_failed", user_id=username, ip_address=ip)
-        return jsonify({"error": "invalid credentials"}), 401
+    with hsa_tracer.start_as_current_span("login.authenticate", attributes={"login.ip": ip, "login.user": username}):
+        # Verify credentials (constant-time for non-existent users)
+        user = USERS.get(username)
+        hashed = user["password_hash"] if user else DUMMY_HASH
+        is_valid = verify_password(password, hashed)
+        if not (user and is_valid):
+            err_resp = _update_lockout(redis_client, ip, username, LOCKOUT_TTL_SECONDS, ERR_SERVICE_DEGRADED)
+            if err_resp:
+                return err_resp
+            logger.warning("authentication_failed", user_id=username, ip_address=ip)
+            return jsonify({"error": "invalid credentials"}), 401
 
     # Successful login — clear lockout counters
     try:
-        redis_client.delete(lockout_ip_key)
-        redis_client.delete(lockout_user_key)
-    except redis_lib.RedisError:
+        redis_client.delete(f"lockout:ip:{ip}")
+        redis_client.delete(f"lockout:user:{username}")
+    except Exception:
         return jsonify({"error": ERR_SERVICE_DEGRADED}), 503
 
     token = generate_jwt(username, USERS[username]["role"])
@@ -129,17 +111,7 @@ def logout():
         return jsonify({"status": MSG_LOGGED_OUT}), 200
 
     claims = verify_jwt(raw, redis_client)
-    if not claims:
-        return jsonify({"status": MSG_LOGGED_OUT}), 200
-
-    jti = claims.get("jti")
-    exp = claims.get("exp")
-    if jti and exp:
-        try:
-            ttl = int(exp - time.time())
-            if ttl > 0:
-                redis_client.setex(f"revoked_jti:{jti}", ttl, "revoked")
-        except redis_lib.RedisError:
-            pass
+    if claims:
+        _revoke_jti(redis_client, claims)
 
     return jsonify({"status": MSG_LOGGED_OUT}), 200
