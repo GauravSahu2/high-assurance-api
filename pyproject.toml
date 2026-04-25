@@ -82,7 +82,7 @@ exclude = ["venv", "tests", "migrations"]
 testpaths = ["tests"]
 norecursedirs = ["mutants", "venv", ".env", ".git"]
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov=src --cov-fail-under=100 --cov-report=term-missing"
+addopts = "--cov=src --cov-fail-under=100 --cov-report=term-missing --cov-report=xml:coverage.xml"
 filterwarnings = [
     "ignore::DeprecationWarning:opentelemetry.*",
     "ignore::UserWarning:_hypothesis_pytestplugin.*",
