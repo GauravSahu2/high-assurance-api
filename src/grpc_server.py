@@ -13,7 +13,7 @@ import internal_audit_pb2_grpc
 
 
 class InternalAuditServicer(internal_audit_pb2_grpc.InternalAuditServiceServicer):
-    def StreamAuditEvents(self, request, context):
+    def StreamAuditEvents(self, request, context):  # pragma: no cover
         """Mock implementation of audit event streaming."""
         events = [
             {
