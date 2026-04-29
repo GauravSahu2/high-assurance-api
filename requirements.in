@@ -44,3 +44,6 @@ bcrypt
 gunicorn
 flake8
 flake8-cognitive-complexity
+ruff
+black
+isort

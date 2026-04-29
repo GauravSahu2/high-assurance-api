@@ -29,6 +29,8 @@ attrs==26.1.0
     #   referencing
 bcrypt==5.0.0
     # via -r requirements.in
+black==26.3.1
+    # via -r requirements.in
 blinker==1.9.0
     # via flask
 boolean-py==5.0
@@ -63,6 +65,7 @@ charset-normalizer==3.4.7
     # via requests
 click==8.3.3
     # via
+    #   black
     #   flask
     #   schemathesis
 cognitive-complexity==1.3.0
@@ -153,6 +156,8 @@ iso8601==2.1.0
     # via pyseto
 isoduration==20.11.0
     # via jsonschema
+isort==8.0.1
+    # via -r requirements.in
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
@@ -207,6 +212,7 @@ mypy==1.20.2
     # via -r requirements.in
 mypy-extensions==1.1.0
     # via
+    #   black
     #   mypy
     #   typing-inspect
 nodeenv==1.10.0
@@ -258,6 +264,7 @@ packageurl-python==0.17.6
     #   cyclonedx-python-lib
 packaging==26.2
     # via
+    #   black
     #   cyclonedx-bom
     #   gunicorn
     #   opentelemetry-instrumentation
@@ -271,7 +278,9 @@ pandas==3.0.2
 pandera==0.31.1
     # via -r requirements.in
 pathspec==1.1.1
-    # via mypy
+    # via
+    #   black
+    #   mypy
 pika==1.3.2
     # via -r requirements.in
 pip-api==0.0.34
@@ -284,6 +293,7 @@ pip-requirements-parser==32.0.1
     #   pip-audit
 platformdirs==4.9.6
     # via
+    #   black
     #   pip-audit
     #   python-discovery
     #   virtualenv
@@ -364,6 +374,8 @@ python-discovery==1.2.2
     # via virtualenv
 python-json-logger==4.1.0
     # via -r requirements.in
+pytokens==0.4.1
+    # via black
 pyyaml==6.0.3
     # via
     #   detect-secrets
@@ -407,6 +419,8 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
+ruff==0.15.12
+    # via -r requirements.in
 s3transfer==0.17.0
     # via boto3
 schemathesis==4.17.0
