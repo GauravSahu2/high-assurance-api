@@ -52,10 +52,10 @@ def test_grpc_server_coverage():
     """HITS src/grpc_server.py entirely."""
     from concurrent import futures
 
+    import grpc_server
+
     import internal_audit_pb2 as pb2
     import internal_audit_pb2_grpc as pb2_grpc
-
-    import grpc_server
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     pb2_grpc.add_InternalAuditServiceServicer_to_server(grpc_server.InternalAuditServicer(), server)
