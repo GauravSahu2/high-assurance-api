@@ -15,7 +15,6 @@ moto[wafv2,s3,ec2,iam]
 boto3
 jsonschema
 python-json-logger
-PyJWT
 cyclonedx-bom
 cyclonedx-python-lib
 pre-commit

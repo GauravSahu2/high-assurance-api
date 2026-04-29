@@ -114,27 +114,18 @@ def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
     if not token:
         return None
 
-    # ── Compatibility Bridge ──
-    if token.startswith("v4.public."):
-        # PASETO Logic
-        _, pub = _get_paseto_keys()
-        try:
-            decoded = pyseto.decode(pub, token)
-            import json
+    # ── Strict PASETO v4.public Enforcement ──
+    if not token.startswith("v4.public."):
+        return None
 
-            payload = json.loads(decoded.payload)
-        except Exception:
-            return None
-    else:
-        # Legacy JWT Logic (for existing tests)
-        import jwt as pyjwt
+    _, pub = _get_paseto_keys()
+    try:
+        decoded = pyseto.decode(pub, token)
+        import json
 
-        from security import JWT_SECRET
-
-        try:
-            payload = pyjwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        except Exception:
-            return None
+        payload = json.loads(decoded.payload)
+    except Exception:
+        return None
 
     # Common validation (Revocation Check)
     jti = payload.get("jti")
