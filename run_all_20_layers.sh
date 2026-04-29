@@ -5,6 +5,13 @@ echo "============================================================"
 echo "🌍 HSA UNIVERSAL PIPELINE (STATIC + DYNAMIC)"
 echo "============================================================"
 
+# Detect environment
+if [ -d "./venv" ]; then
+    VENV_PATH="./venv/bin/"
+else
+    VENV_PATH=""
+fi
+
 echo -e "\n🔎 PHASE 1: STATIC PIPELINE"
 echo "------------------------------------------------------------"
 if command -v docker &> /dev/null; then
@@ -15,16 +22,16 @@ if command -v docker &> /dev/null; then
     docker run --rm -v "$(pwd)":/project -v "$(pwd)/.trivycache:/root/.cache" aquasec/trivy:0.50.1 fs --format json --output /project/trivy-report.json --severity HIGH,CRITICAL /project/requirements.txt || echo "✅ Dependencies verified."
 
     echo "[>] CycloneDX (SBOM Generation)..."
-    ./venv/bin/pip install cyclonedx-bom --quiet
-    ./venv/bin/cyclonedx-py requirements requirements.txt --of JSON -o sbom.json
+    ${VENV_PATH}pip install cyclonedx-bom --quiet
+    ${VENV_PATH}cyclonedx-py requirements requirements.txt --of JSON -o sbom.json
 
     echo "[>] Enforcing Cyclomatic Complexity (max 15)..."
-    ./venv/bin/ruff check src/ --select C901 || (echo "❌ Cyclomatic Complexity threshold (15) exceeded!" && exit 1)
+    ${VENV_PATH}ruff check src/ --select C901 || (echo "❌ Cyclomatic Complexity threshold (15) exceeded!" && exit 1)
     echo "✅ Cyclomatic Complexity within limits."
 
     echo "[>] Enforcing Cognitive Complexity (max 15)..."
-    ./venv/bin/pip install flake8 flake8-cognitive-complexity flake8-json --quiet
-    ./venv/bin/flake8 src/ --select CCR001 --max-cognitive-complexity 15 --format json > complexity-report.json || (echo "❌ Cognitive Complexity threshold (15) exceeded!" && exit 1)
+    ${VENV_PATH}pip install flake8 flake8-cognitive-complexity flake8-json --quiet
+    ${VENV_PATH}flake8 src/ --select CCR001 --max-cognitive-complexity 15 --format json > complexity-report.json || (echo "❌ Cognitive Complexity threshold (15) exceeded!" && exit 1)
     echo "✅ Cognitive Complexity within limits."
 else
     echo "⚠️ Docker unavailable — skipping static scans."
@@ -43,10 +50,10 @@ export TEST_MODE="true"
 unset API_URL
 
 echo "🧪 Running pytest (Integration/Unit)..."
-./venv/bin/pytest -p no:warnings --cov=src --cov-config=pyproject.toml -rsno --cov-report=term-missing --cov-report=xml
+${VENV_PATH}pytest -p no:warnings --cov=src --cov-config=pyproject.toml -rsno --cov-report=term-missing --cov-report=xml
 
 echo "🚀 Starting Production Gunicorn Server..."
-TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-12345678901234567890123448byteslong" ./venv/bin/gunicorn --workers 2 --threads 4 -b 0.0.0.0:5000 "main:app" > server.log 2>&1 &
+TEST_MODE=true JWT_SECRET="super-secure-dev-secret-key-12345678901234567890123448byteslong" ${VENV_PATH}gunicorn --workers 2 --threads 4 -b 0.0.0.0:5000 "main:app" > server.log 2>&1 &
 API_PID=$!
 # Ensure server is killed even if script fails
 trap 'kill "$API_PID" 2>/dev/null || true' EXIT
@@ -64,9 +71,9 @@ VIP_TOKEN=$(curl -s -X POST http://localhost:5000/login -H "Content-Type: applic
 
 # Removed --quiet (unsupported)
 if [ -n "$VIP_TOKEN" ]; then
-    ./venv/bin/schemathesis run openapi.yaml --url http://localhost:5000 -c not_a_server_error -H "Authorization: Bearer $VIP_TOKEN"
+    ${VENV_PATH}schemathesis run openapi.yaml --url http://localhost:5000 -c not_a_server_error -H "Authorization: Bearer $VIP_TOKEN"
 else
-    ./venv/bin/schemathesis run openapi.yaml --url http://localhost:5000 -c not_a_server_error
+    ${VENV_PATH}schemathesis run openapi.yaml --url http://localhost:5000 -c not_a_server_error
 fi
 
 echo "🔐 Running OWASP ZAP..."
@@ -76,10 +83,10 @@ fi
 
 echo -e "\n📊 PERFORMANCE METRICS"
 # This ensures we get the "1 passed, 116 skipped" table you want at the end
-./venv/bin/pytest -p no:warnings -o addopts="" --benchmark-only 2>/dev/null || true
+${VENV_PATH}pytest -p no:warnings -o addopts="" --benchmark-only 2>/dev/null || true
 
 echo -e "\n🛡️ GENERATING MASTER COMPLIANCE REPORT..."
-./venv/bin/python3 generate_advanced_compliance_report.py
+${VENV_PATH}python3 generate_advanced_compliance_report.py
 
 echo -e "\n✅ 32-Tier Validation Complete. Advanced Reports available in compliance_master_report.md"
 exit 0
