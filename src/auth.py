@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 import time
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import bcrypt
 import pyseto
@@ -124,6 +124,7 @@ def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
     else:
         # Legacy JWT Logic (for existing tests)
         import jwt as pyjwt
+
         from security import JWT_SECRET
         try:
             payload = pyjwt.decode(token, JWT_SECRET, algorithms=["HS256"])

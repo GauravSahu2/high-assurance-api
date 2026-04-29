@@ -8,6 +8,7 @@ requires-python = ">=3.12"
 target-version = "py312"
 line-length = 120
 src = ["src", "tests"]
+exclude = ["src/generated/*"]
 
 [tool.black]
 line-length = 120
@@ -68,6 +69,7 @@ max-complexity = 15
 "hsa-reporter.py" = ["E501", "E722"]
 "scripts/*.py" = ["E501", "S112", "RUF001"]
 "migrations/**/*.py" = ["E501"]
+"src/grpc_server.py" = ["N802"]
 
 [tool.mypy]
 python_version = "3.12"

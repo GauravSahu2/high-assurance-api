@@ -10,21 +10,19 @@ Provides:
 
 from __future__ import annotations
 
+import atexit
 import os
+import sys
+from collections.abc import Sequence
 
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
-    SimpleSpanProcessor,
+    SpanExportResult,
 )
-import atexit
-import sys
-from typing import Sequence
-from opentelemetry.sdk.trace import ReadableSpan
-from opentelemetry.sdk.trace.export import SpanExportResult
 
 from config import DEPLOY_ENV
 

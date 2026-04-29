@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 import random
-import time
+from datetime import UTC
 
 from flask import Blueprint, jsonify, request
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -93,8 +93,8 @@ def health():
             503,
         )
 
-    from datetime import datetime, timezone
-    return jsonify({"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()})
+    from datetime import datetime
+    return jsonify({"status": "ok", "timestamp": datetime.now(UTC).isoformat()})
 
 
 @health_bp.route("/metrics", methods=["GET"])

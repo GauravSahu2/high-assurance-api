@@ -1,14 +1,16 @@
+import os
+import sys
 import time
 from concurrent import futures
+
 import grpc
-import sys
-import os
 
 # Add generated directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'generated'))
 
 import internal_audit_pb2
 import internal_audit_pb2_grpc
+
 
 class InternalAuditServicer(internal_audit_pb2_grpc.InternalAuditServiceServicer):
     def StreamAuditEvents(self, request, context):
