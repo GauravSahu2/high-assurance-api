@@ -8,6 +8,7 @@ requires-python = ">=3.12"
 target-version = "py312"
 line-length = 120
 src = ["src", "tests"]
+exclude = ["src/generated"]
 
 [tool.black]
 line-length = 120
@@ -65,6 +66,7 @@ max-complexity = 15
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "S106", "S105", "E501"]
 "src/main.py" = ["E402", "F401"]
+"src/grpc_server.py" = ["N802"]
 "hsa-reporter.py" = ["E501", "E722"]
 "scripts/*.py" = ["E501", "S112", "RUF001"]
 "migrations/**/*.py" = ["E501"]
