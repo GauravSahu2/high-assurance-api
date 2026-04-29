@@ -124,9 +124,10 @@ def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
         import json
 
         payload = json.loads(decoded.payload)
-        
+
         if "exp" in payload:
             from datetime import UTC, datetime
+
             if payload["exp"] < int(datetime.now(UTC).timestamp()):
                 return None
 
