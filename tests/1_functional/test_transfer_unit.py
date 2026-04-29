@@ -76,6 +76,7 @@ def test_jwt_strict_time_boundaries(client):
 def test_jwt_iat_is_utc(client):
     """Kills Mutant 21: Proves the token generation is strictly UTC, not Local Time."""
     from datetime import datetime
+
     from auth import verify_jwt
 
     res = client.post("/login", json={"username": "admin", "password": "password123"})
@@ -93,7 +94,7 @@ def test_jwt_encode_explicit_algorithm():
     token = generate_jwt("admin")
     # Verify it is a PASETO v4.public token
     assert token.startswith("v4.public."), "High-Assurance requirement: Must use PASETO v4.public"
-    
+
     payload = verify_jwt(token)
     assert payload["sub"] == "admin"
 
@@ -128,6 +129,7 @@ def test_jwt_absolute_time_strictness():
     import os
     import time
     from datetime import datetime
+
     from auth import generate_jwt, verify_jwt
 
     # 1. Save current TZ and warp to New York

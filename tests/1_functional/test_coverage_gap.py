@@ -1,12 +1,13 @@
-import pytest
 from routes.route_utils import _revoke_jti
 from telemetry import _get_or_create_counter, _get_or_create_histogram
+
 
 def test_revoke_jti_missing_claims():
     # Covers line 42 in route_utils.py
     assert _revoke_jti(None, {}) is None
     assert _revoke_jti(None, {"jti": "some"}) is None
     assert _revoke_jti(None, {"exp": 123}) is None
+
 
 def test_get_or_create_metrics_already_exists():
     # Covers lines 59 and 67 in telemetry.py

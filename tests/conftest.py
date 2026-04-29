@@ -1,9 +1,6 @@
 import os
 import unittest.mock as mock
-import uuid
-from datetime import UTC, datetime, timedelta
 
-import jwt
 import pytest
 from hypothesis import HealthCheck, settings
 
@@ -60,6 +57,7 @@ def client():
 @pytest.fixture
 def token_factory():
     from auth import generate_jwt
+
     return lambda u="admin", r="user": generate_jwt(u, r)
 
 

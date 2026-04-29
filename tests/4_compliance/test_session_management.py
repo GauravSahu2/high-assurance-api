@@ -104,7 +104,6 @@ class TestTokenRevocation:
         """NIST AC-12: Expired tokens must be rejected."""
         # Create a token that expired 10 seconds ago
         import datetime
-        from auth import generate_jwt
 
         # We can't easily generate an expired PASETO token without manual timestamping
         # But our verify_jwt bridge supports legacy JWT for this specific test case
