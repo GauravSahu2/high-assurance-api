@@ -6,7 +6,7 @@ from concurrent import futures
 import grpc
 
 # Add generated directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'generated'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "generated"))
 
 import internal_audit_pb2
 import internal_audit_pb2_grpc
@@ -22,7 +22,7 @@ class InternalAuditServicer(internal_audit_pb2_grpc.InternalAuditServiceServicer
                 "user_id": "admin",
                 "action": "LOGIN",
                 "status": "SUCCESS",
-                "detail": "Admin logged in from 192.168.1.1"
+                "detail": "Admin logged in from 192.168.1.1",
             },
             {
                 "event_id": "audit-002",
@@ -30,20 +30,19 @@ class InternalAuditServicer(internal_audit_pb2_grpc.InternalAuditServiceServicer
                 "user_id": "user_1",
                 "action": "TRANSFER",
                 "status": "SUCCESS",
-                "detail": "Transferred 500.00 to user_2"
-            }
+                "detail": "Transferred 500.00 to user_2",
+            },
         ]
-        
+
         for event_data in events:
             yield internal_audit_pb2.AuditEvent(**event_data)
             time.sleep(0.5)
 
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    internal_audit_pb2_grpc.add_InternalAuditServiceServicer_to_server(
-        InternalAuditServicer(), server
-    )
-    server.add_insecure_port('[::]:50051')
+    internal_audit_pb2_grpc.add_InternalAuditServiceServicer_to_server(InternalAuditServicer(), server)
+    server.add_insecure_port("[::]:50051")
     print("gRPC Internal Audit Server started on port 50051")
     server.start()
     try:
@@ -52,5 +51,6 @@ def serve():
     except KeyboardInterrupt:
         server.stop(0)
 
-if __name__ == '__main__':  # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     serve()

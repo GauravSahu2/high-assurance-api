@@ -47,6 +47,7 @@ def _get_paseto_keys():
             # Fallback for CI/Tests if keys don't exist yet
             if TEST_MODE:
                 import os
+
                 _private_key = Key.new(version=4, purpose="public", key=os.urandom(32))
                 _public_key = Key.new(version=4, purpose="public", key=os.urandom(32))
             else:
@@ -73,6 +74,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── FIDO2 / WebAuthn ──────────────────────────────────────────────────────────
 
+
 def generate_webauthn_challenge(username: str) -> str:
     """Generate a random challenge for FIDO2 registration/authentication."""
     # In a real implementation, this would be stored in the session/Redis
@@ -86,6 +88,7 @@ def verify_webauthn_assertion(username: str, assertion_data: dict) -> bool:
 
 
 # ── Token Management (PASETO v4.public) ──────────────────────────────────────
+
 
 def generate_jwt(username: str, role: str = "user") -> str:
     """Generate a signed PASETO (v4.public) token.
@@ -118,6 +121,7 @@ def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
         try:
             decoded = pyseto.decode(pub, token)
             import json
+
             payload = json.loads(decoded.payload)
         except Exception:
             return None
@@ -126,6 +130,7 @@ def verify_jwt(token: str | None, redis_client: object = None) -> dict | None:
         import jwt as pyjwt
 
         from security import JWT_SECRET
+
         try:
             payload = pyjwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         except Exception:

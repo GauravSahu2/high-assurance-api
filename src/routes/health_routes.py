@@ -94,6 +94,7 @@ def health():
         )
 
     from datetime import datetime
+
     return jsonify({"status": "ok", "timestamp": datetime.now(UTC).isoformat()})
 
 
