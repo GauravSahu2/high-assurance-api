@@ -93,7 +93,8 @@ def health():
             503,
         )
 
-    return jsonify({"status": "ok", "timestamp": time.time()})
+    from datetime import datetime, timezone
+    return jsonify({"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()})
 
 
 @health_bp.route("/metrics", methods=["GET"])

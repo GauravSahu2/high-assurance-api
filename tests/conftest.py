@@ -59,17 +59,8 @@ def client():
 
 @pytest.fixture
 def token_factory():
-    def make(username="user_1", role="user"):
-        payload = {
-            "sub": username,
-            "role": role,
-            "exp": datetime.now(UTC) + timedelta(hours=1),
-            "iat": datetime.now(UTC),
-            "jti": str(uuid.uuid4()),
-        }
-        return jwt.encode(payload, _main.JWT_SECRET, algorithm="HS256")
-
-    return make
+    from auth import generate_jwt
+    return lambda u="admin", r="user": generate_jwt(u, r)
 
 
 @pytest.fixture

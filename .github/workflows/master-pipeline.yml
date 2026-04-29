@@ -181,6 +181,12 @@ jobs:
           pip install checkov
           checkov -d . --framework dockerfile,kubernetes,terraform --quiet || true
 
+      - name: "🛡️ Supply Chain & PBOM — OX Security"
+        uses: oxsecurity/ox-security-scan@main
+        continue-on-error: true # Prevents hard failure if OX_API_KEY is not yet configured in GitHub Secrets
+        with:
+          ox_api_key: ${{ secrets.OX_API_KEY }}
+
   # ── DUAL-ARCH BUILD & PUSH ──────────────────────
   docker:
     name: "🐳 Build & Push"

@@ -15,9 +15,30 @@ import os
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+    SimpleSpanProcessor,
+)
+import atexit
+import sys
+from typing import Sequence
+from opentelemetry.sdk.trace import ReadableSpan
+from opentelemetry.sdk.trace.export import SpanExportResult
 
 from config import DEPLOY_ENV
+
+
+class SafeConsoleSpanExporter(ConsoleSpanExporter):
+    """Console exporter that avoids errors if stdout is closed during shutdown."""
+
+    def export(self, spans: Sequence[ReadableSpan]) -> SpanExportResult:
+        try:
+            if sys.stdout is None or sys.stdout.closed:
+                return SpanExportResult.SUCCESS
+            return super().export(spans)
+        except (ValueError, RuntimeError, AttributeError):
+            return SpanExportResult.SUCCESS
 
 
 def init_telemetry() -> trace.Tracer:
@@ -30,9 +51,10 @@ def init_telemetry() -> trace.Tracer:
         }
     )
     provider = TracerProvider(resource=resource)
+    atexit.register(provider.shutdown)
 
     # Console exporter for local visibility
-    provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+    provider.add_span_processor(BatchSpanProcessor(SafeConsoleSpanExporter()))
 
     # Optional OTLP collector for production
     otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")

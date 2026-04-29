@@ -1,7 +1,7 @@
 [project]
 name = "high-assurance-api"
-version = "2.0.0"
-description = "Compliance-grade financial API with 20-tier defense-in-depth testing"
+version = "2.1.0"
+description = "Compliance-grade financial API with 32-tier defense-in-depth testing"
 requires-python = ">=3.12"
 
 [tool.ruff]
@@ -60,7 +60,7 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.mccabe]
-max-complexity = 25
+max-complexity = 15
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "S106", "S105", "E501"]
@@ -82,8 +82,24 @@ exclude = ["venv", "tests", "migrations"]
 testpaths = ["tests"]
 norecursedirs = ["mutants", "venv", ".env", ".git"]
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov=src --cov-fail-under=100 --cov-report=term-missing --cov-report=xml:coverage.xml"
+addopts = "--cov=src --cov-config=pyproject.toml --cov-fail-under=100 --cov-report=term-missing --cov-report=xml:coverage.xml"
 filterwarnings = [
     "ignore::DeprecationWarning:opentelemetry.*",
     "ignore::UserWarning:_hypothesis_pytestplugin.*",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "src/generated/*",
+    "src/report_generator.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
 ]

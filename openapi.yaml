@@ -141,6 +141,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "admin"
       responses:
         '200':
           description: User profile
@@ -163,6 +164,7 @@ paths:
           required: true
           schema:
             type: string
+            example: "admin"
       responses:
         '200':
           description: Account balance

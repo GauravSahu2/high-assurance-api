@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package internal_audit;
+
+service InternalAuditService {
+  rpc StreamAuditEvents(AuditRequest) returns (stream AuditEvent) {}
+}
+
+message AuditRequest {
+  string filter_type = 1;
+}
+
+message AuditEvent {
+  string event_id = 1;
+  string timestamp = 2;
+  string user_id = 3;
+  string action = 4;
+  string status = 5;
+  string detail = 6;
+}

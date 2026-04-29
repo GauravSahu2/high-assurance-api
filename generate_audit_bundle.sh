@@ -7,12 +7,15 @@ mkdir -p "$BUNDLE_DIR"
 
 echo "📦 Packaging evidence for compliance..."
 
-[[[[ -f audit_reports/test_results.xml ]] && cp audit_reports/test_results.xml "$BUNDLE_DIR/pytest_results.xml"
-[[[[ -f logs/api.log ]] && cp logs/api.log "$BUNDLE_DIR/api.log"
+[[ -f audit_reports/test_results.xml ]] && cp audit_reports/test_results.xml "$BUNDLE_DIR/pytest_results.xml"
+[[ -f logs/api.log ]] && cp logs/api.log "$BUNDLE_DIR/api.log"
+[[ -f compliance_master_report.md ]] && cp compliance_master_report.md "$BUNDLE_DIR/compliance_master_report.md"
+[[ -f sonarqube_report.md ]] && cp sonarqube_report.md "$BUNDLE_DIR/sonarqube_report.md"
+[[ -f hardware_matrix.md ]] && cp hardware_matrix.md "$BUNDLE_DIR/hardware_matrix.md"
 
 echo "📋 Generating Software Bill of Materials (SBOM)..."
 # 🛡️ FIX: Removed --format flag as newer versions infer format from the .json extension
-python3 -m cyclonedx_py environment -o "$BUNDLE_DIR/sbom.json" > /dev/null 2>&1 || echo "⚠️ SBOM Generation skipped (Tool not available)"
+python3 -m cyclonedx_bom -r -i requirements.txt -o "$BUNDLE_DIR/sbom.json" > /dev/null 2>&1 || echo "⚠️ SBOM Generation skipped (Tool not available)"
 
 echo "✅ SBOM generated."
 

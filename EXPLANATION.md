@@ -18,10 +18,10 @@ senior-level software engineering across security, compliance, and operational e
 
 The **High-Assurance API** is a production-grade financial transfer service that implements:
 
-- **JWT-authenticated fund transfers** with ACID guarantees
+- **PASETO-authenticated fund transfers** with ACID guarantees
 - **32-tier automated quality validation** from unit tests to disaster recovery
 - **Real-time DAST security scanning** (OWASP ZAP) on every commit
-- **100% code coverage** and **Mutation Testing** enforced as a CI gate
+- **100.0% code coverage** and **Mutation Testing** enforced as a CI gate
 - **FDA 21 CFR Part 11, SOC 2, PCI DSS, and GDPR compliance testing**
 - **Sentinel Dashboard**: A Next.js 14 visualization layer for compliance telemetry
 
@@ -68,16 +68,16 @@ This is the project's defining innovation. Every code change passes through **32
 | 29 | **SLO Budgeting** | Programmatic error budget verification |
 | 30 | **Dashboard API** | Data consistency for the Sentinel UI |
 | 31 | **Complexity Matrix** | O(N) hardware requirement proofing |
-| 32 | **Audit Generation** | Dynamic executive technical report proofing |ion |
+| 32 | **Audit Generation** | Dynamic executive technical report proofing |
 
 ### How to Run It (Locally)
 
 ```bash
-# Inner Loop (Logic + Security + Performance) — ~2 minutes
+# Inner Loop (Logic + Security + Performance) — ~30 seconds
 source venv/bin/activate
 hsa -i
 
-# Full 20-Tier Gauntlet (adds DAST, ZAP, static scanning) — ~3 minutes
+# Full 32-Tier Gauntlet (adds DAST, ZAP, static scanning) — ~3 minutes
 hsa -a
 ```
 
@@ -99,7 +99,7 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 | **Healthcare** | FDA 21 CFR Part 11 requires paper audit trails | Digital, immutable, timestamped audit events via OutboxEvent |
 | **Banking** | Double-spend and race conditions cause losses | Deterministic lock ordering + idempotency keys |
 | **Insurance** | SOC 2 audits require months of evidence gathering | `hsa -a` generates an audit bundle in 3 minutes |
-| **Defense/Gov** | Zero-trust API security is mandated | SSRF protection, JWT revocation, BOLA enforcement |
+| **Defense/Gov** | Zero-trust API security is mandated | SSRF protection, PASETO revocation, BOLA enforcement |
 
 ### Revenue Model (Hypothetical)
 
@@ -114,12 +114,14 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 
 | Feature | High-Assurance API | Typical API Framework |
 |---------|:-:|:-:|
-| 20-tier automated testing | ✅ | ❌ |
-| 100% code coverage + Mutmut | ✅ | ~70-80% |
+| 32-tier automated testing | ✅ | ❌ |
+| 100.0% code coverage + Mutmut | ✅ | ~70-80% |
 | OWASP ZAP in local dev loop | ✅ | CI-only |
 | FDA 21 CFR audit trails | ✅ | ❌ |
 | SSRF-safe egress client | ✅ | Manual |
 | Timing attack resistance | ✅ | ❌ |
+| PASETO v4.public (Ed25519) | ✅ | ❌ |
+| Complexity Gate (15/15) | ✅ | ❌ |
 | Policy-as-Code (OPA/Rego) | ✅ | ❌ |
 | Programmatic SLO Error Budgets | ✅ | ❌ |
 
@@ -159,13 +161,13 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 | Skill Category | Evidence |
 |---------------|----------|
 | **System Design** | Blueprint architecture, transactional outbox, idempotency |
-| **Security Engineering** | SSRF protection, timing attack resistance, JWT revocation, BOLA, CSV injection defense |
-| **Testing Mastery** | 288 tests, 20 tiers, property-based fuzzing, DAST, mutation testing, 100% coverage |
-| **DevSecOps** | 9 GitHub Actions pipelines, Gitleaks, Trivy, ZAP, OPA |
+| **Security Engineering** | SSRF protection, timing attack resistance, PASETO revocation, BOLA, CSV injection defense |
+| **Testing Mastery** | 316 tests, 32 tiers, property-based fuzzing, DAST, mutation testing, 100.0% coverage |
+| **DevSecOps** | 9 GitHub Actions pipelines, Gitleaks, Trivy, ZAP, OPA, SonarCloud |
 | **Infra Security** | 100/100 Checkov score, rootless containers, read-only FS, NetPol |
 | **Compliance** | FDA, SOC 2, PCI DSS, GDPR mapped to specific test assertions |
 | **Observability** | OpenTelemetry + Prometheus SLOs + Grafana dashboards + structured logging |
-| **Code Quality** | Type hints, docstrings, Flask Factory Pattern, clean architecture |
+| **Code Quality** | Type hints, docstrings, Flask Factory Pattern, clean architecture, **Max 15 Complexity** |
 | **Operational Excellence** | K8s liveness/readiness probes, chaos engineering, automated rollbacks |
 
 ### Key Technical Decisions (Interview-Ready)
@@ -186,7 +188,12 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 > usernames by measuring response times. The DUMMY_HASH forces constant-time
 > behavior regardless of whether the user exists.
 
-**4. Why the Transactional Outbox instead of publishing events directly?**
+**4. Why PASETO instead of JWT?**
+> JWTs have a history of "Algorithm Confusion" attacks (e.g., `alg: none`). 
+> PASETO (Platform-Agnostic Security Tokens) v4.public is hard-coded to use 
+> Ed25519, eliminating the possibility of algorithm-downgrade attacks.
+
+**5. Why the Transactional Outbox instead of publishing events directly?**
 > If the API writes to the database AND publishes to Kafka in the same request,
 > a crash between the two operations means either: (a) the transfer happened but
 > no event was published, or (b) the event was published but the transfer rolled
@@ -194,7 +201,7 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 > reads from the Outbox table and publishes asynchronously, achieving exactly-once
 > delivery without distributed transactions.
 
-**5. Why SSRF protection in an internal API?**
+**6. Why SSRF protection in an internal API?**
 > If an attacker can make the API issue HTTP requests (via file URLs, webhook
 > configs, etc.), they can reach internal services, cloud metadata endpoints
 > (169.254.169.254), and exfiltrate IAM credentials. The egress client blocks
@@ -206,14 +213,14 @@ The High-Assurance API platform can be positioned as an **internal developer pla
 
 ```
 high-assurance-api/
-├── src/                         # Application source code
+├── src/                         # Application source (100.0% coverage)
 │   ├── main.py                  # App factory + Blueprint registration
-│   ├── auth.py                  # JWT generation, password hashing
+│   ├── auth.py                  # PASETO v4 core, user store
 │   ├── config.py                # Centralized configuration
 │   ├── database.py              # SQLAlchemy engine + session
 │   ├── models.py                # Account, IdempotencyKey, OutboxEvent
-│   ├── security.py              # HTTP security headers
-│   ├── telemetry.py             # OpenTelemetry instrumentation
+│   ├── security.py              # HTTP security headers (OWASP)
+│   ├── telemetry.py             # OpenTelemetry + Safe Span Export
 │   ├── csv_validator.py         # Pandera CSV validation + injection sanitization
 │   ├── egress_client.py         # SSRF-safe HTTP client
 │   ├── report_generator.py      # Dynamic executive technical reporting
@@ -222,7 +229,7 @@ high-assurance-api/
 │   └── routes/                  # Flask Blueprints
 ├── apps/
 │   └── compliance-dashboard/    # Next.js 14 Sentinel Dashboard UI
-├── tests/                       # 298 tests across 32 tiers
+├── tests/                       # 316 tests across 32 tiers
 │   ├── 1_functional/            # BVA, coverage, unit tests
 │   ├── 2_security/              # Timing attacks, BOLA
 │   ├── 4_compliance/            # SOC 2, PCI DSS, FDA
@@ -247,11 +254,11 @@ high-assurance-api/
 ```bash
 git clone https://github.com/GauravSahu2/high-assurance-api.git
 cd high-assurance-api
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# Run the full 288-test, 20-tier validation:
-hsa -i
+# Run the full 316-test, 32-tier validation gauntlet:
+hsa -a
 
 # Deploy locally:
 docker compose up -d

@@ -49,5 +49,5 @@ graph TD
 ## Dependabot Stabilization
 The pipeline is designed to be **Bot-Safe**:
 - Non-critical scans (SonarCloud, ZAP) are bypassed for `dependabot[bot]` to prevent red PRs due to missing secrets.
-- `JWT_SECRET` and `APP_AUTH_TOKEN` have secure defaults for testing environments.
+- `PASETO_PRIVATE_KEY` and `APP_AUTH_TOKEN` have secure defaults for testing environments.
 - Dependency CVE scans are integrated via `Trivy` and `pip-audit`.

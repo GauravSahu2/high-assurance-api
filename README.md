@@ -1,8 +1,8 @@
 # 🛡️ High-Assurance API — 32-Tier Quality Architecture
 
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-Master%20Pipeline%20Active-success?style=for-the-badge&logo=githubactions&logoColor=white)](.github/workflows/master-pipeline.yml) [![Tests](https://img.shields.io/badge/Tests-32%20Tiers%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#) [![Compliance](https://img.shields.io/badge/Compliance-Sentinel%20Active-blue?style=for-the-badge&logo=nextdotjs&logoColor=white)](PIPELINE.md)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Master%20Pipeline%20Active-success?style=for-the-badge&logo=githubactions&logoColor=white)](.github/workflows/master-pipeline.yml) [![Tests](https://img.shields.io/badge/Tests-32%20Tiers%20Passing-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/) [![Compliance](https://img.shields.io/badge/Compliance-Sentinel%20Active-blue?style=for-the-badge&logo=nextdotjs&logoColor=white)](PIPELINE.md)
 
-A property-tested, compliance-grade financial API platform with **298 automated tests**, **100% code coverage**, and a perfect **100/100 Architecture Score**. Designed for strict regulatory environments (Fintech, Healthcare, Banking) — producing cryptographically signed, timestamped FDA-grade audit bundles and visualized via a **Premium Next.js 14 Dashboard**.
+A property-tested, compliance-grade financial API platform with **316 automated tests**, **100.0% code coverage**, and a perfect **100/100 Architecture Score**. Designed for strict regulatory environments (Fintech, Healthcare, Banking) — featuring **PASETO v4.public** cryptography, produces cryptographically signed, timestamped FDA-grade audit bundles and visualized via a **Premium Next.js 14 Dashboard**.
 
 > 📖 **For recruiters, CTOs, and VCs:** See [EXPLANATION.md](EXPLANATION.md) for a full technical overview, SaaS positioning, and interview-ready architecture decisions.
 
@@ -13,7 +13,7 @@ A property-tested, compliance-grade financial API platform with **298 automated 
 The project features a **Project Aegis Sentinel** dashboard built with **Next.js 14**, **Framer Motion**, and **TailwindCSS**. It provides real-time telemetry into the 32-tier gauntlet, resource scaling trajectories (O(N) proofs), and hardening directives.
 
 | Feature | Sentinel Implementation |
-|---------|-------------------------|
+| --------- | ------------------------- |
 | **Real-time Sync** | Dynamic fetching from High-Assurance API backend |
 | **Scaling Proofs** | Interactive Area charts showing compute/memory linear scale |
 | **Audit Access** | Direct integration for generating executive technical reports |
@@ -39,7 +39,7 @@ graph TB
         D --> E[Correlation ID + Structured Logging]
         E --> F{Route Blueprints}
 
-        F --> G[auth_routes.py<br>Login · Logout · JWT]
+        F --> G[auth_routes.py<br>Login · Logout · PASETO]
         F --> H[transfer_routes.py<br>Transfers · Idempotency · Outbox]
         F --> I[health_routes.py<br>Health · Metrics · OpenAPI]
         F --> J[upload_routes.py<br>CSV Validation · Schema]
@@ -51,7 +51,7 @@ graph TB
         G --> L[(PostgreSQL<br>Accounts · Idempotency · Outbox)]
         H --> L
         K --> L
-        G --> M[(Redis<br>Rate Limiting · JWT Revocation)]
+        G --> M[(Redis<br>Rate Limiting · PASETO Revocation)]
         H --> M
     end
 
@@ -83,7 +83,7 @@ Three phases guarantee correctness, security, and operational resilience:
 ### Phase 1 — Core Logic & Security (Tiers 1–12)
 
 | Tier | Category | What It Validates |
-|:---:|---|---|
+| :---: | --- | --- |
 | 1 | **Functional / BVA** | Boundary value analysis on all inputs |
 | 2 | **Security** | Timing attacks, SSRF, XSS, BOLA, injection |
 | 3 | **Resilience** | Idempotency keys, replay protection |
@@ -95,12 +95,12 @@ Three phases guarantee correctness, security, and operational resilience:
 | 9 | **Secrets Mgmt** | AWS Secrets Manager (moto) |
 | 10 | **Vault Integration** | HashiCorp Vault key rotation mocking |
 | 11 | **BOLA Extended** | Cross-tenant database isolation |
-| 12 | **JWT Revocation** | Blacklist propagation via Redis |
+| 12 | **PASETO Integrity** | Ed25519 signature verification |
 
 ### Phase 2 — Integration & Performance (Tiers 13–24)
 
 | Tier | Category | What It Validates |
-|:---:|---|---|
+| :---: | --- | --- |
 | 13 | **Outbox Pattern** | Transactional event publishing |
 | 14 | **Integration** | CORS, contracts, network seams |
 | 15 | **Observability** | Correlation ID, structured logging |
@@ -112,12 +112,12 @@ Three phases guarantee correctness, security, and operational resilience:
 | 21 | **Complexity Proof** | O(N) linear compute verification |
 | 22 | **Tracing Prop** | OTEL context propagation checks |
 | 23 | **SLO Budgeting** | Error budget exhaustion alerts |
-| 24 | **Report Delivery** | Dynamic MD report generation |
+| 24 | **Report Delivery** | Dynamic SonarQube Compliance Report |
 
 ### Phase 3 — Operational Safeguards (Tiers 25–32)
 
 | Tier | Category | What It Validates |
-|:---:|---|---|
+| :---: | --- | --- |
 | 25 | **DB Guards** | Destructive operation protection |
 | 26 | **Two-Person Rule** | CODEOWNERS enforcement |
 | 27 | **DAST** | OWASP ZAP (117 rules scanned) |
@@ -125,7 +125,7 @@ Three phases guarantee correctness, security, and operational resilience:
 | 29 | **Disaster Recovery** | Backup integrity, RTO/RPO |
 | 30 | **Policy-as-Code** | OPA/Rego policy enforcement |
 | 31 | **Infrastructure** | Checkov 100% score (13 alerts resolved) |
-| 32 | **Supply Chain** | Mutmut coverage + Trivy CVE scanning |
+| 32 | **Quality Gates** | Complexity Gate (Threshold 15) + Trivy + Mutmut |
 
 ---
 
@@ -133,9 +133,9 @@ Three phases guarantee correctness, security, and operational resilience:
 
 ```text
 high-assurance-api/
-├── src/                          # Application source (100% coverage)
+├── src/                          # Application source (100.0% coverage)
 │   ├── main.py                   # App factory + Blueprint registration
-│   ├── auth.py                   # JWT generation, password hashing, user store
+│   ├── auth.py                   # PASETO v4, password hashing, user store
 │   ├── config.py                 # Centralized configuration constants
 │   ├── database.py               # SQLAlchemy engine + session factory
 │   ├── models.py                 # Account, IdempotencyKey, OutboxEvent (Numeric balance)
@@ -149,7 +149,7 @@ high-assurance-api/
 │   └── routes/                   # Flask Blueprints
 ├── apps/
 │   └── compliance-dashboard/     # Next.js 14 Sentinel Dashboard
-├── tests/                        # 298 tests across 32 tiers
+├── tests/                        # 316 tests across 32 tiers
 ├── policies/                     # OPA Rego policy files
 ├── .github/                      # CI/CD (Master Pipeline)
 ├── docs/                         # Operational docs, SRE runbooks
@@ -173,10 +173,10 @@ cd high-assurance-api
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# Run Inner Loop (Logic + Security + Performance) — ~2 minutes
+# Run Inner Loop (Logic + Security + Performance) — ~30 seconds
 hsa -i
 
-# Run Full 20-Tier Gauntlet — ~3 minutes
+# Run Full 32-Tier Gauntlet — ~3 minutes
 hsa -a
 
 # Deploy locally with full stack
@@ -187,8 +187,8 @@ curl http://localhost:5000/health
 ### The `hsa` CLI
 
 ```bash
-hsa -i          # Inner Loop: 288 tests + coverage + fuzzing + benchmarks
-hsa -a          # Full Gauntlet: Static scans + DAST + ZAP + performance
+hsa -i          # Inner Loop: 316 tests + 100% coverage + fuzzing + benchmarks
+hsa -a          # Full Gauntlet: Static scans + DAST + ZAP + performance + Sonar
 hsa scan .      # Polyglot SAST/SCA/Secrets on any folder
 ```
 
@@ -199,13 +199,13 @@ hsa scan .      # Polyglot SAST/SCA/Secrets on any folder
 **9 GitHub Actions workflows** run on every push:
 
 | Workflow | Purpose |
-|----------|---------|
-| `ci.yml` | Core test suite + coverage gate |
-| `high-assurance-pipeline.yml` | Full 20-tier gauntlet |
-| `devsecops.yml` | Security scan orchestration |
+| --------- | ------------------------- |
+| `ci.yml` | Core test suite + 100.0% coverage gate |
+| `high-assurance-pipeline.yml` | Full 32-tier gauntlet |
+| `devsecops.yml` | Security scan orchestration (Gitleaks, Trivy) |
 | `fda_pipeline.yml` | FDA 21 CFR audit bundle generation |
 | `fossa_scan.yml` | License compliance scanning |
-| `iac_scanner.yml` | Infrastructure-as-Code scanning |
+| `iac_scanner.yml` | Infrastructure-as-Code scanning (Checkov) |
 | `leakix_scan.yml` | Secret/leak detection |
 | `gitops.yml` | GitOps deployment triggers |
 | `visualization.yml` | Test result visualization |
@@ -215,9 +215,10 @@ hsa scan .      # Polyglot SAST/SCA/Secrets on any folder
 ## Security Controls
 
 | Control | Implementation |
-|---------|---------------|
-| **Authentication** | JWT with JTI revocation via Redis blacklist |
+| --------- | ------------------------- |
+| **Authentication** | PASETO v4.public with Ed25519 signatures |
 | **Timing Resistance** | DUMMY_HASH for non-existent users (constant-time bcrypt) |
+| **Supply Chain Defense** | OX Security for Pipeline Bill of Materials (PBOM) |
 | **SSRF Protection** | Egress client blocks all private/metadata IPs |
 | **Rate Limiting** | IP + user-level lockout (5 attempts, 1-hour TTL) |
 | **BOLA Prevention** | Role-based + ownership checks on all data endpoints |
@@ -231,7 +232,7 @@ hsa scan .      # Polyglot SAST/SCA/Secrets on any folder
 ## Compliance Mapping
 
 | Standard | Controls Tested |
-|----------|----------------|
+| --------- | ------------------------- |
 | **SOC 2 CC7.2–CC7.4** | Security event logging, audit trail completeness |
 | **PCI DSS 10.1–10.7** | Card data access logging, failed login tracking |
 | **FDA 21 CFR §11.10** | Immutable timestamps, electronic signatures, audit trails |
@@ -241,10 +242,13 @@ hsa scan .      # Polyglot SAST/SCA/Secrets on any folder
 
 ## Best Practices
 
+- **PASETO v4.public** — Hard-coded algorithm rigidity (Ed25519) to prevent downgrade attacks
+- **Complexity Gates (Threshold 15)** — Strictly enforced Cyclomatic and Cognitive complexity
 - **Numeric(12,2)** for monetary values — prevents IEEE 754 floating-point errors
 - **Ordered lock acquisition** (`sorted([sender, receiver])`) — prevents deadlocks
 - **Transactional Outbox** — avoids dual-write problems without distributed transactions
 - **Structured JSON logging** with correlation IDs — tracing across services
+- **Supply Chain Security** — OX Security integrated into CI/CD for PBOM generation
 - **Policy-as-Code** (OPA/Rego) — security invariants enforced programmatically
 - **CODEOWNERS** — two-person rule on all critical paths
 
@@ -258,4 +262,4 @@ This repository is maintained strictly for portfolio demonstration and personal 
 
 **Proprietary Work:** This is not an open-source project. All rights are reserved.
 
-**Contact:** [linkedin.com/in/gauravsahu22](https://www.linkedin.com/in/gauravsahu22) | Gauravsahu2203@gmail.com
+**Contact:** [linkedin.com/in/gauravsahu22](https://www.linkedin.com/in/gauravsahu22) | <gauravsahu2203@gmail.com>
