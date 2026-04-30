@@ -47,3 +47,4 @@ flake8-cognitive-complexity
 ruff
 black
 isort
+bandit

@@ -27,6 +27,8 @@ attrs==26.1.0
     #   allure-python-commons
     #   jsonschema
     #   referencing
+bandit==1.9.4
+    # via -r requirements.in
 bcrypt==5.0.0
     # via -r requirements.in
 black==26.3.1
@@ -378,6 +380,7 @@ pytokens==0.4.1
     # via black
 pyyaml==6.0.3
     # via
+    #   bandit
     #   detect-secrets
     #   moto
     #   pre-commit
@@ -413,6 +416,7 @@ rfc3987-syntax==1.1.0
     # via jsonschema
 rich==15.0.0
     # via
+    #   bandit
     #   pip-audit
     #   schemathesis
 rpds-py==0.30.0
@@ -443,6 +447,8 @@ starlette==1.0.0
     # via starlette-testclient
 starlette-testclient==0.4.1
     # via schemathesis
+stevedore==5.7.0
+    # via bandit
 structlog==25.5.0
     # via -r requirements.in
 tenacity==9.1.4
