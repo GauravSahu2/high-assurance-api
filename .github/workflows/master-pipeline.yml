@@ -109,11 +109,16 @@ jobs:
           # We run this even on PRs, but we'll mock secrets if needed
           ./run_all_20_layers.sh
 
-      - name: Upload Coverage Results
+      - name: Upload Validation Reports
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: coverage.xml
+          name: validation-reports
+          path: |
+            coverage.xml
+            ruff-report.json
+            bandit-report.json
+            trivy-report.json
+            compliance_master_report.md
           retention-days: 1
 
   # ── MUTATION TESTING ───────────────────────────
@@ -136,6 +141,7 @@ jobs:
           mutmut run --paths-to-mutate=src/security.py --no-progress 2>&1 || true
           echo "## Mutation Test Results" >> $GITHUB_STEP_SUMMARY
           mutmut results >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo "✅ Mutation test complete."
 
   # ── SECURITY SCANS (EXTERNAL) ─────────────────
   security:
@@ -147,10 +153,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Coverage Results
+      - name: Download Validation Reports
         uses: actions/download-artifact@v4
         with:
-          name: coverage-report
+          name: validation-reports
 
       - name: "Quality Gate — SonarCloud"
         uses: SonarSource/sonarcloud-github-action@master
