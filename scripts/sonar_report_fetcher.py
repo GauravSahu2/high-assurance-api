@@ -1,16 +1,16 @@
 import os
 from datetime import datetime
-
 import requests
-
 
 def fetch_sonar_metrics():
     sonar_token = os.environ.get("SONAR_TOKEN")
     project_key = "GauravSahu2_high-assurance-api"
 
     if not sonar_token:
-        print("SONAR_TOKEN not found. Skipping report generation.")
-        return
+        print("SONAR_TOKEN not found. Using anonymous access (might be limited).")
+        auth = None
+    else:
+        auth = (sonar_token, "")
 
     url = "https://sonarcloud.io/api/measures/component"
     params = {
@@ -18,56 +18,84 @@ def fetch_sonar_metrics():
         "metricKeys": (
             "alert_status,bugs,vulnerabilities,code_smells,coverage,"
             "duplicated_lines_density,sqale_index,reliability_rating,"
-            "security_rating,sqale_rating"
+            "security_rating,sqale_rating,ncloc,complexity,cognitive_complexity,"
+            "security_hotspots,security_review_rating"
         ),
     }
 
     try:
-        response = requests.get(url, params=params, auth=(sonar_token, ""), timeout=30)
+        response = requests.get(url, params=params, auth=auth, timeout=30)
         response.raise_for_status()
         data = response.json()
-
         measures = {m["metric"]: m["value"] for m in data["component"]["measures"]}
+        
+        # Fetch Top Issues
+        issues_url = "https://sonarcloud.io/api/issues/search"
+        issues_params = {
+            "componentKeys": project_key,
+            "resolved": "false",
+            "ps": 10,
+            "facets": "severities,types"
+        }
+        issues_resp = requests.get(issues_url, params=issues_params, auth=auth, timeout=30)
+        issues_data = issues_resp.json() if issues_resp.status_code == 200 else {"issues": []}
 
+        # Generate markdown
         report_path = "sonar_report.md"
-        with open(report_path, "w") as f:
-            f.write("# 🛡️ SonarCloud Quality Audit Report\n")
-            f.write(f"**Date Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"**Project**: `{project_key}`\n\n")
-
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write("# 🛡️ Advanced SonarCloud Quality Audit\n\n")
+            
+            # Overview Alert
             status = measures.get("alert_status", "UNKNOWN")
-            status_emoji = "✅ PASS" if status == "OK" else "❌ FAIL"
-            f.write(f"## 🏁 Quality Gate Status: {status_emoji} ({status})\n\n")
+            if status == "OK":
+                f.write("> [!NOTE]\n> **Quality Gate PASSED** ✅ - The codebase meets the high-assurance standards.\n\n")
+            else:
+                f.write("> [!CAUTION]\n> **Quality Gate FAILED** ❌ - Critical issues must be resolved before deployment.\n\n")
 
-            f.write("### 📊 Key Metrics\n")
-            f.write("| Metric | Value | Rating |\n")
-            f.write("| :--- | :--- | :--- |\n")
-            f.write(f"| 🐛 **Bugs** | {measures.get('bugs', '0')} | {measures.get('reliability_rating', 'N/A')} |\n")
-            f.write(
-                f"| 🔓 **Vulnerabilities** | {measures.get('vulnerabilities', '0')} | "
-                f"{measures.get('security_rating', 'N/A')} |\n"
-            )
-            f.write(
-                f"| ☣️ **Code Smells** | {measures.get('code_smells', '0')} | "
-                f"{measures.get('sqale_rating', 'N/A')} |\n"
-            )
-            f.write(f"| 🧪 **Test Coverage** | {measures.get('coverage', '0')}% | - |\n")
-            f.write(f"| 📋 **Duplications** | {measures.get('duplicated_lines_density', '0')}% | - |\n")
-            f.write(f"| ⏱️ **Technical Debt** | {measures.get('sqale_index', '0')} min | - |\n\n")
+            f.write(f"**Analysis Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | **Project**: `{project_key}`\n\n")
+            
+            f.write("## 📈 Code Health Overview\n")
+            f.write("| Architecture & Size | Value | Security & Reliability | Value |\n")
+            f.write("| :--- | :--- | :--- | :--- |\n")
+            f.write(f"| 📝 **Lines of Code** | {measures.get('ncloc', '0')} | 🐛 **Bugs** | {measures.get('bugs', '0')} |\n")
+            f.write(f"| 🧠 **Cyclomatic Complexity** | {measures.get('complexity', '0')} | 🔓 **Vulnerabilities** | {measures.get('vulnerabilities', '0')} |\n")
+            f.write(f"| 🤯 **Cognitive Complexity** | {measures.get('cognitive_complexity', '0')} | ☢️ **Security Hotspots** | {measures.get('security_hotspots', '0')} |\n")
+            f.write(f"| 📋 **Duplication Density** | {measures.get('duplicated_lines_density', '0')}% | ☣️ **Code Smells** | {measures.get('code_smells', '0')} |\n")
+            f.write(f"| 🧪 **Test Coverage** | {measures.get('coverage', '0')}% | ⏱️ **Tech Debt** | {measures.get('sqale_index', '0')} min |\n\n")
 
-            f.write("## 👑 Compliance Attestation\n")
-            f.write(
-                "This project adheres to high-assurance standards. "
-                "All critical and high issues must be resolved before deployment.\n\n"
-            )
+            f.write("## 🎖️ Ratings\n")
+            f.write("- **Reliability Rating**: `" + measures.get('reliability_rating', 'N/A') + "`\n")
+            f.write("- **Security Rating**: `" + measures.get('security_rating', 'N/A') + "`\n")
+            f.write("- **Security Review Rating**: `" + measures.get('security_review_rating', 'N/A') + "`\n")
+            f.write("- **Maintainability Rating**: `" + measures.get('sqale_rating', 'N/A') + "`\n\n")
+
+            f.write("## 🔍 Latest Active Issues\n")
+            if issues_data.get("issues"):
+                for issue in issues_data["issues"]:
+                    severity = issue.get("severity", "INFO")
+                    icon = "🔴" if severity in ["BLOCKER", "CRITICAL"] else "🟡" if severity == "MAJOR" else "🔵"
+                    f.write(f"### {icon} {severity} - {issue.get('type', 'ISSUE')}\n")
+                    f.write(f"**Message:** {issue.get('message')}\n\n")
+                    f.write(f"- **File:** `{issue.get('component', '').replace(project_key + ':', '')}`\n")
+                    if 'line' in issue:
+                        f.write(f"- **Line:** {issue['line']}\n")
+                    f.write("\n")
+            else:
+                f.write("> [!TIP]\n> Outstanding! No active issues found in the latest scan.\n\n")
+
             f.write("---\n")
-            f.write("*Report generated automatically by HSA Pipeline.*\n")
+            f.write("*Dashboard automatically generated by High-Assurance API CI/CD Pipeline.*\n")
+            
+        print(f"✅ Enhanced SonarCloud report generated: {report_path}")
 
-        print(f"✅ SonarCloud report generated: {report_path}")
+        # Also append to GITHUB_STEP_SUMMARY if available
+        if "GITHUB_STEP_SUMMARY" in os.environ:
+            with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary_file:
+                with open(report_path, "r", encoding="utf-8") as f:
+                    summary_file.write(f.read())
 
     except Exception as e:
         print(f"❌ Failed to fetch SonarCloud metrics: {e}")
-
 
 if __name__ == "__main__":
     fetch_sonar_metrics()
