@@ -26,7 +26,7 @@ if command -v docker &> /dev/null; then
     ${VENV_PATH}cyclonedx-py requirements requirements.txt --of JSON -o sbom.json
 
     echo "[>] Enforcing Cyclomatic Complexity (max 15)..."
-    ${VENV_PATH}ruff check src/ --select C901 --format json -o ruff-report.json || (echo "❌ Cyclomatic Complexity threshold (15) exceeded!" && exit 1)
+    ${VENV_PATH}ruff check src/ --select C901 --output-format json -o ruff-report.json || (echo "❌ Cyclomatic Complexity threshold (15) exceeded!" && exit 1)
     echo "✅ Cyclomatic Complexity within limits."
 
     echo "[>] Bandit (Security SAST)..."
