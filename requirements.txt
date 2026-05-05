@@ -163,9 +163,7 @@ isort==8.0.1
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
-    # via
-    #   flask
-    #   moto
+    # via flask
 jmespath==1.1.0
     # via
     #   boto3
@@ -206,7 +204,7 @@ mccabe==0.7.0
     # via flake8
 mdurl==0.1.2
     # via markdown-it-py
-moto[ec2,iam,s3,wafv2]==5.1.22
+moto[ec2,iam,s3,wafv2]==5.2.0
     # via -r requirements.in
 msgpack==1.1.2
     # via cachecontrol
@@ -370,7 +368,6 @@ python-dateutil==2.9.0.post0
     # via
     #   arrow
     #   botocore
-    #   moto
     #   pandas
 python-discovery==1.2.2
     # via virtualenv
