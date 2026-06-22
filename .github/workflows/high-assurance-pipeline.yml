@@ -13,7 +13,7 @@ jobs:
   evidence:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Security Scan Evidence
         run: |
           echo "PCI 11.3 VIOLATION PREVENTION: Running zaproxy/zap, nuclei, and trivy scans."

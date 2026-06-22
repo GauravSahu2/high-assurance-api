@@ -24,7 +24,7 @@ jobs:
     name: "🔍 Lint & Static Analysis"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Python Linting
       - name: Set up Python 3.12
@@ -75,7 +75,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -151,7 +151,7 @@ jobs:
     # Skip for dependabot if secrets are missing
     if: github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download Validation Reports
         uses: actions/download-artifact@v8
@@ -205,7 +205,7 @@ jobs:
             context: ./apps/compliance-dashboard
             image: dashboard
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -250,7 +250,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: SSH Deploy
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
