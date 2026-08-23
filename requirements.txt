@@ -275,7 +275,7 @@ packaging==26.2
     #   pip-audit
     #   pip-requirements-parser
     #   pytest
-pandas==3.0.2
+pandas==3.0.3
     # via -r requirements.in
 pandera==0.31.1
     # via -r requirements.in
